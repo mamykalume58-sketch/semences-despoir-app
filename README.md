@@ -1,4 +1,4 @@
-# Les Semences d'Espoir — app Flutter
+# Vivre pour les Autres — app Flutter
 
 Adaptation mobile du site web (Vite + HTML/CSS/JS). Même charte (vert #0B6B3A / or #FFC107, Poppins), mêmes contenus.
 
@@ -38,6 +38,6 @@ Le workflow génère `android/` à la volée, ajoute la permission INTERNET (né
 images) et publie l'APK en artefact (`semences-despoir-apk`, 90 jours).
 
 ```bash
-git init && git add . && git commit -m "Init app Flutter Semences d'Espoir"
+git init && git add . && git commit -m "Init app Flutter Vivre pour les Autres"
 # puis push sur le dépôt GitHub (branche main) → onglet Actions → Build APK
 ```

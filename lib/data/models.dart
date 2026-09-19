@@ -77,7 +77,7 @@ class NewsItem {
     required this.summary,
     required this.date,
     required this.paragraphs,
-    this.author = "L'équipe Semences d'Espoir",
+    this.author = "L'équipe Vivre pour les Autres",
     this.imageUrl,
   });
 

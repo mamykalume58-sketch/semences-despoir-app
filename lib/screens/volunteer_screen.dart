@@ -151,7 +151,7 @@ class _VolunteerScreenState extends State<VolunteerScreen> {
                         maxLines: 6,
                         keyboardType: TextInputType.multiline,
                         validator: requiredValidator,
-                        decoration: inputDecoration("Pourquoi voulez-vous rejoindre Les Semences d'Espoir ?"),
+                        decoration: inputDecoration("Pourquoi voulez-vous rejoindre Vivre pour les Autres ?"),
                       ),
                       const Gap(12),
                       TextFormField(

@@ -128,7 +128,7 @@ class DemoData {
   static final news = <NewsItem>[
     NewsItem(
       id: 'visite-aines',
-      title: "Les Semences d'Espoir visite 30 personnes âgées à Lubumbashi",
+      title: "Vivre pour les Autres visite 30 personnes âgées à Lubumbashi",
       category: 'actions',
       summary: 'Une journée de partage et d\'assistance pour apporter un peu de réconfort à nos aînés.',
       date: DateTime(2026, 9, 11),

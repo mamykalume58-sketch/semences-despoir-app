@@ -104,7 +104,7 @@ class HomeScreen extends StatelessWidget {
           ),
           const Gap(12),
           Text(
-            "Les Semences d'Espoir est un groupe humanitaire qui vient en aide aux personnes vulnérables et agit concrètement pour améliorer les conditions de vie dans les communautés.",
+            "Vivre pour les Autres est un groupe humanitaire qui vient en aide aux personnes vulnérables et agit concrètement pour améliorer les conditions de vie dans les communautés.",
             style: AppText.body.copyWith(fontSize: 15),
           ),
           const Gap(18),

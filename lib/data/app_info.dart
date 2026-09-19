@@ -14,7 +14,7 @@ class SocialLink {
 class AppInfo {
   AppInfo._();
 
-  static const name = "Les Semences d'Espoir";
+  static const name = "Vivre pour les Autres";
   static const slogan = "L'amour se partage, l'espoir se sème";
   static const tagline = 'Un groupe humanitaire au service des personnes vulnérables de Lubumbashi.';
 

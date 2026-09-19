@@ -36,7 +36,7 @@ class AboutScreen extends StatelessWidget {
                 const Text("Née d'une conviction simple", style: AppText.h2),
                 const Gap(10),
                 const Text(
-                  "Les Semences d'Espoir est née d'une volonté d'apporter de l'aide et de l'amour aux plus vulnérables. Face à la souffrance et aux inégalités, un groupe de bénévoles a décidé d'agir, ensemble, pour semer l'espoir dans nos communautés.",
+                  "Vivre pour les Autres est née d'une volonté d'apporter de l'aide et de l'amour aux plus vulnérables. Face à la souffrance et aux inégalités, un groupe de bénévoles a décidé d'agir, ensemble, pour semer l'espoir dans nos communautés.",
                   style: AppText.body,
                 ),
                 const Gap(10),
