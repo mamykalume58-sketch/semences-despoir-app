@@ -12,5 +12,15 @@ dependencies:
   google_fonts: ^6.2.1
   url_launcher: ^6.3.0
 
+dev_dependencies:
+  flutter_launcher_icons: ^0.14.1
+
 flutter:
   uses-material-design: true
+  assets:
+    - assets/
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/vpla_icon_v2.png"

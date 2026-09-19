@@ -36,6 +36,7 @@ jobs:
           grep -n "INTERNET\|android:label" "$MANIFEST"
 
       - run: flutter pub get
+      - run: dart run flutter_launcher_icons
       - run: flutter build apk --release
 
       - uses: actions/upload-artifact@v4
