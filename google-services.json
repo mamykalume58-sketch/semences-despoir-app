@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "781672402025",
+    "project_id": "semences-despoir",
+    "storage_bucket": "semences-despoir.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:781672402025:android:17f132b9fce567f579e6f8",
+        "android_client_info": {
+          "package_name": "com.semencesdespoir.semences_despoir"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArNHFO_WGEIWs3VW22ongz4_PjXtFjlzk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
