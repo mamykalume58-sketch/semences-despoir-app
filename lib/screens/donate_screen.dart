@@ -22,7 +22,6 @@ class _DonateScreenState extends State<DonateScreen> {
 
   static const _payments = <String, List<String>>{
     'mobile_money': ['Mobile Money', 'Orange Money, M-Pesa, Airtel Money'],
-    'bank': ['Compte bancaire', 'Virement — coordonnées communiquées après confirmation'],
     'other': ['Autre moyen', 'Nous vous contacterons pour convenir ensemble'],
   };
 
