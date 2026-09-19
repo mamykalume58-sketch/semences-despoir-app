@@ -35,14 +35,12 @@ jobs:
           sed -i 's|android:label="[^"]*"|android:label="VPLA"|' "$MANIFEST"
           grep -n "INTERNET\|android:label" "$MANIFEST"
 
-      - name: Diagnostic Gradle + google-services.json
+      - name: Firebase (google-services)
         run: |
           cp google-services.json android/app/google-services.json
-          flutter --version
-          ls android android/app
-          echo "== android/settings"; cat android/settings.gradle*
-          echo "== android/build"; cat android/build.gradle*
-          echo "== android/app/build"; cat android/app/build.gradle*
+          sed -i '/id("com.android.application") version/a\    id("com.google.gms.google-services") version "4.4.4" apply false' android/settings.gradle.kts
+          sed -i '/id("com.android.application")/a\    id("com.google.gms.google-services")' android/app/build.gradle.kts
+          grep -n "google-services" android/settings.gradle.kts android/app/build.gradle.kts
 
       - run: flutter pub get
       - run: dart run flutter_launcher_icons
