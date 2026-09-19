@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'data/app_info.dart';
-import 'screens/shell.dart';
+import 'screens/splash_screen.dart';
 import 'theme.dart';
 
 void main() {
@@ -23,7 +23,7 @@ class SemencesApp extends StatelessWidget {
       title: AppInfo.name,
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
-      home: const MainShell(),
+      home: const SplashScreen(),
     );
   }
 }
