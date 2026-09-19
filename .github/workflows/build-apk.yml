@@ -1,0 +1,45 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Le dépôt ne contient que lib/ + pubspec.yaml : on génère le dossier android/
+      # dans un dossier temporaire puis on ne copie que android/.
+      - name: Générer android/
+        run: |
+          flutter create --platforms=android --org com.semencesdespoir --project-name semences_despoir "$RUNNER_TEMP/scaffold"
+          cp -r "$RUNNER_TEMP/scaffold/android" ./android
+
+      - name: Permission Internet + nom de l'app
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET"/>\n    <application|' "$MANIFEST"
+          sed -i 's|android:label="[^"]*"|android:label="Semences d’Espoir"|' "$MANIFEST"
+          grep -n "INTERNET\|android:label" "$MANIFEST"
+
+      - run: flutter pub get
+      - run: flutter build apk --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: semences-despoir-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 90
