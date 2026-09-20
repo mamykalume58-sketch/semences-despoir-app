@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../theme.dart';
@@ -142,15 +143,32 @@ class AppImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasUrl = url != null && url!.isNotEmpty;
-    Widget child = hasUrl
-        ? Image.network(
-            url!,
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-            errorBuilder: (_, __, ___) => _Placeholder(label),
-          )
-        : _Placeholder(label);
+    Widget child;
+    if (hasUrl && url!.startsWith('data:')) {
+      // Image encodée en base64 (écrite par l'admin) : décodage local, pas de requête réseau.
+      try {
+        final base64Part = url!.substring(url!.indexOf(',') + 1);
+        child = Image.memory(
+          base64Decode(base64Part),
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (_, __, ___) => _Placeholder(label),
+        );
+      } catch (_) {
+        child = _Placeholder(label);
+      }
+    } else if (hasUrl) {
+      child = Image.network(
+        url!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (_, __, ___) => _Placeholder(label),
+      );
+    } else {
+      child = _Placeholder(label);
+    }
     child = ClipRRect(borderRadius: BorderRadius.circular(radius), child: child);
     if (aspectRatio != null) {
       return AspectRatio(aspectRatio: aspectRatio!, child: child);
