@@ -21,6 +21,7 @@ class DemoData {
       description: 'Visites régulières, assistance au quotidien et moments de partage.',
       count: 18,
       icon: Icons.elderly,
+      adminCategory: 'Personnes âgées',
     ),
     ActionArea(
       id: 'veuves',
@@ -28,6 +29,7 @@ class DemoData {
       description: 'Soutien matériel, accompagnement humain et écoute.',
       count: 9,
       icon: Icons.favorite_border,
+      adminCategory: 'Veuves',
     ),
     ActionArea(
       id: 'orphelins',
@@ -35,6 +37,7 @@ class DemoData {
       description: 'Éducation, fournitures scolaires et suivi de bien-être.',
       count: 14,
       icon: Icons.school_outlined,
+      adminCategory: 'Orphelins',
     ),
     ActionArea(
       id: 'nourriture',
@@ -42,6 +45,7 @@ class DemoData {
       description: 'Distribution alimentaire régulière pour les familles en difficulté.',
       count: 22,
       icon: Icons.restaurant_outlined,
+      adminCategory: 'Nourriture',
     ),
     ActionArea(
       id: 'communautes',
@@ -49,6 +53,7 @@ class DemoData {
       description: 'Actions solidaires au bénéfice du plus grand nombre.',
       count: 11,
       icon: Icons.groups_outlined,
+      adminCategory: 'Communautés',
     ),
     ActionArea(
       id: 'autres',
@@ -56,6 +61,7 @@ class DemoData {
       description: 'Projets divers, nés directement des besoins constatés sur le terrain.',
       count: 6,
       icon: Icons.auto_awesome_outlined,
+      adminCategory: 'Autres',
     ),
   ];
 
@@ -114,9 +120,12 @@ class DemoData {
   /// Options de la page Don (id → libellé).
   static const donationTargets = <String, String>{
     'general': 'Là où le besoin est le plus urgent',
-    'orphelins': 'Soutien aux orphelins',
-    'personnes-agees': 'Visites aux personnes âgées',
-    'nourriture': 'Distribution de nourriture',
+    'Personnes âgées': 'Personnes âgées',
+    'Veuves': 'Veuves',
+    'Orphelins': 'Orphelins',
+    'Nourriture': 'Nourriture',
+    'Communautés': 'Communautés',
+    'Autres': 'Autres initiatives',
   };
 
   static const newsCategories = <String, String>{

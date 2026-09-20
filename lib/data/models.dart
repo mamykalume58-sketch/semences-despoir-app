@@ -98,6 +98,7 @@ class ActionArea {
     required this.description,
     required this.count,
     required this.icon,
+    required this.adminCategory,
   });
 
   final String id;
@@ -105,6 +106,7 @@ class ActionArea {
   final String description;
   final int count;
   final IconData icon;
+  final String adminCategory;
 }
 
 class GalleryItem {

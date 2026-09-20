@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/app_info.dart';
 import '../data/demo_data.dart';
 import '../data/models.dart';
+import '../data/firestore_actions.dart';
 import '../navigation.dart';
 import '../services/submissions.dart';
 import '../theme.dart';
@@ -46,7 +47,22 @@ class HomeScreen extends StatelessWidget {
             title: "Nos actions en un coup d'œil",
             subtitle: 'Six domaines d\'intervention, une seule mission : redonner de la dignité et de l\'espoir.',
           ),
-          for (final a in DemoData.actions) _ActionTile(area: a),
+          StreamBuilder<List<ActionItem>>(
+            stream: FirestoreActions.watchActions(),
+            builder: (context, snapshot) {
+              final latestByCategory = <String, String>{};
+              for (final item in snapshot.data ?? const <ActionItem>[]) {
+                if (item.imageUrl == null || item.imageUrl!.isEmpty) continue;
+                latestByCategory.putIfAbsent(item.category, () => item.imageUrl!);
+              }
+              return Column(
+                children: [
+                  for (final a in DemoData.actions)
+                    _ActionTile(area: a, imageUrl: latestByCategory[a.adminCategory]),
+                ],
+              );
+            },
+          ),
           _sloganBlock(),
           const SectionHead(eyebrow: 'Nos derniers projets', title: 'Des projets pour un impact durable'),
           for (final p in featured)
@@ -219,8 +235,9 @@ class _StatCard extends StatelessWidget {
 }
 
 class _ActionTile extends StatelessWidget {
-  const _ActionTile({required this.area});
+  const _ActionTile({required this.area, this.imageUrl});
   final ActionArea area;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -233,11 +250,15 @@ class _ActionTile extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                Container(
+                SizedBox(
                   width: 44,
                   height: 44,
-                  decoration: BoxDecoration(color: AppColors.vertClair, borderRadius: BorderRadius.circular(12)),
-                  child: Icon(area.icon, color: AppColors.vert),
+                  child: (imageUrl != null && imageUrl!.isNotEmpty)
+                      ? AppImage(url: imageUrl, label: area.title, radius: 12)
+                      : Container(
+                          decoration: BoxDecoration(color: AppColors.vertClair, borderRadius: BorderRadius.circular(12)),
+                          child: Icon(area.icon, color: AppColors.vert),
+                        ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(

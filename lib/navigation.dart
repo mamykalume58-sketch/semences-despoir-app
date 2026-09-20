@@ -15,7 +15,7 @@ void _push(BuildContext context, Widget page) {
 }
 
 void openProject(BuildContext c, Project p) => _push(c, ProjectDetailScreen(project: p));
-void openDonate(BuildContext c, {String? projectId}) => _push(c, DonateScreen(projectId: projectId));
+void openDonate(BuildContext c, {String? category}) => _push(c, DonateScreen(category: category));
 void openNews(BuildContext c, NewsItem n) => _push(c, NewsDetailScreen(news: n));
 void openActions(BuildContext c, {String? category}) => _push(c, ActionsScreen(initialCategory: category));
 void openAbout(BuildContext c) => _push(c, const AboutScreen());

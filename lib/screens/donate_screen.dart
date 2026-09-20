@@ -8,10 +8,10 @@ import '../utils.dart';
 import '../widgets/common.dart';
 
 /// Utilisé comme onglet « Don » (sans flèche retour) ou poussé depuis un projet
-/// avec [projectId] présélectionné (flèche retour automatique).
+/// avec [category] présélectionné (flèche retour automatique).
 class DonateScreen extends StatefulWidget {
-  const DonateScreen({super.key, this.projectId});
-  final String? projectId;
+  const DonateScreen({super.key, this.category});
+  final String? category;
 
   @override
   State<DonateScreen> createState() => _DonateScreenState();
@@ -32,8 +32,8 @@ class _DonateScreenState extends State<DonateScreen> {
 
   int? _quick;
   bool _other = false;
-  late String _project = DemoData.donationTargets.containsKey(widget.projectId)
-      ? widget.projectId!
+  late String _project = DemoData.donationTargets.containsKey(widget.category)
+      ? widget.category!
       : 'general';
   String _payment = 'mobile_money';
   bool _loading = false;
