@@ -55,6 +55,9 @@ jobs:
           awk '/^android {/{print; print "    signingConfigs {"; print "        create(\"release\") {"; print "            storeFile = file(\"release.jks\")"; print "            storePassword = System.getenv(\"KEYSTORE_PASSWORD\")"; print "            keyAlias = System.getenv(\"KEY_ALIAS\")"; print "            keyPassword = System.getenv(\"KEY_PASSWORD\")"; print "        }"; print "    }"; next} {print}' "$GRADLE" > "$GRADLE.tmp" && mv "$GRADLE.tmp" "$GRADLE"
           sed -i 's/signingConfig = signingConfigs.getByName("debug")/signingConfig = signingConfigs.getByName("release")/' "$GRADLE"
           grep -n "signingConfig\|release.jks" "$GRADLE"
+          echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
 
 
       - run: flutter pub get
