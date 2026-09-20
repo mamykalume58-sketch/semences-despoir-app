@@ -156,7 +156,7 @@ class AppImage extends StatelessWidget {
           width: double.infinity,
           height: double.infinity,
           errorBuilder: (_, __, ___) => _Placeholder(label),
-        );
+        ),
         );
       } catch (_) {
         child = _Placeholder(label);
@@ -170,7 +170,7 @@ class AppImage extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         errorBuilder: (_, __, ___) => _Placeholder(label),
-      );
+      ),
       );
     } else {
       child = _Placeholder(label);
