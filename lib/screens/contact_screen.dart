@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../services/submissions.dart';
 import '../utils.dart';
 import '../widgets/common.dart';
-import '../widgets/contact_tiles.dart';
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
@@ -68,7 +67,6 @@ class _ContactScreenState extends State<ContactScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
-                  const ContactTiles(),
                   const Gap(10),
                   FormCard(
                     title: 'Envoyez-nous un message',

@@ -56,14 +56,6 @@ class MoreScreen extends StatelessWidget {
           _MenuTile(icon: Icons.favorite_border, label: 'Devenir bénévole', onTap: () => openVolunteer(context)),
           _MenuTile(icon: Icons.mail_outline, label: 'Nous écrire', onTap: () => openContact(context)),
 
-          // Coordonnées (ex-colonne Nous contacter)
-          const _GroupTitle('Nous contacter'),
-          const ContactTiles(),
-
-          // Réseaux sociaux
-          const _GroupTitle('Suivez-nous'),
-          const SocialRow(),
-
           // Copyright (ex-footer-bottom)
           const Gap(32),
           Center(
