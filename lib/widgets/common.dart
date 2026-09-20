@@ -148,23 +148,29 @@ class AppImage extends StatelessWidget {
       // Image encodée en base64 (écrite par l'admin) : décodage local, pas de requête réseau.
       try {
         final base64Part = url!.substring(url!.indexOf(',') + 1);
-        child = Image.memory(
+        child = Container(
+          color: AppColors.vertClair,
+          child: Image.memory(
           base64Decode(base64Part),
-          fit: BoxFit.cover,
+          fit: BoxFit.contain,
           width: double.infinity,
           height: double.infinity,
           errorBuilder: (_, __, ___) => _Placeholder(label),
+        );
         );
       } catch (_) {
         child = _Placeholder(label);
       }
     } else if (hasUrl) {
-      child = Image.network(
+      child = Container(
+        color: AppColors.vertClair,
+        child: Image.network(
         url!,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         width: double.infinity,
         height: double.infinity,
         errorBuilder: (_, __, ___) => _Placeholder(label),
+      );
       );
     } else {
       child = _Placeholder(label);

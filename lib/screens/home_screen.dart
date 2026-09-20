@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/app_info.dart';
 import '../data/demo_data.dart';
 import '../data/models.dart';
+import '../data/firestore_repo.dart';
 import '../data/firestore_actions.dart';
 import '../data/firestore_settings.dart';
 import '../navigation.dart';
@@ -18,7 +19,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final featured = DemoData.projects.where((p) => p.status != ProjectStatus.aVenir).take(3).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -66,11 +66,24 @@ class HomeScreen extends StatelessWidget {
           ),
           _sloganBlock(),
           const SectionHead(eyebrow: 'Nos derniers projets', title: 'Des projets pour un impact durable'),
-          for (final p in featured)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: ProjectCard(project: p),
-            ),
+          StreamBuilder<List<Project>>(
+            stream: FirestoreRepo.watchProjects(),
+            builder: (context, snapshot) {
+              final source = (snapshot.hasData && snapshot.data!.isNotEmpty)
+                  ? snapshot.data!
+                  : DemoData.projects;
+              final featured = source.where((p) => p.status != ProjectStatus.aVenir).take(3).toList();
+              return Column(
+                children: [
+                  for (final p in featured)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: ProjectCard(project: p),
+                    ),
+                ],
+              );
+            },
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: AppButton(
