@@ -6,7 +6,6 @@ import '../data/app_info.dart';
 import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
-import '../widgets/contact_tiles.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../services/member_service.dart';
