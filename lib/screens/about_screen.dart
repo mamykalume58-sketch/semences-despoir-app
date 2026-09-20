@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../data/firestore_settings.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -45,7 +46,17 @@ class AboutScreen extends StatelessWidget {
                   style: AppText.body,
                 ),
                 const Gap(16),
-                const AppImage(label: "Photo : l'équipe sur le terrain", aspectRatio: 16 / 9, radius: 20),
+                StreamBuilder<SiteSettings>(
+                  stream: FirestoreSettings.watchSettings(),
+                  builder: (context, snapshot) {
+                    return AppImage(
+                      url: snapshot.data?.aboutImage,
+                      label: "Photo : l'équipe sur le terrain",
+                      aspectRatio: 16 / 9,
+                      radius: 20,
+                    );
+                  },
+                ),
                 const Gap(24),
                 const _InfoCard(
                   icon: Icons.flag_outlined,

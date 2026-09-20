@@ -4,6 +4,7 @@ import '../data/app_info.dart';
 import '../data/demo_data.dart';
 import '../data/models.dart';
 import '../data/firestore_actions.dart';
+import '../data/firestore_settings.dart';
 import '../navigation.dart';
 import '../services/submissions.dart';
 import '../theme.dart';
@@ -137,7 +138,17 @@ class HomeScreen extends StatelessWidget {
           const Gap(20),
           Stack(
             children: [
-              const AppImage(label: 'Photo : enfant plantant une pousse', aspectRatio: 4 / 3, radius: 24),
+              StreamBuilder<SiteSettings>(
+                stream: FirestoreSettings.watchSettings(),
+                builder: (context, snapshot) {
+                  return AppImage(
+                    url: snapshot.data?.heroImage,
+                    label: 'Photo : enfant plantant une pousse',
+                    aspectRatio: 4 / 3,
+                    radius: 24,
+                  );
+                },
+              ),
               Positioned(
                 left: 12,
                 right: 12,
