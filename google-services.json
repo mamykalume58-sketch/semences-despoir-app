@@ -12,7 +12,20 @@
           "package_name": "com.semencesdespoir.semences_despoir"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "781672402025-vk2mis8r8u7sn630np1ejlusui5573j4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.semencesdespoir.semences_despoir",
+            "certificate_hash": "a9f2fd5f31e7f4476b3d19db9a09fe891c3f380f"
+          }
+        },
+        {
+          "client_id": "781672402025-du40sin7u9grrmpeujklni1ptkhcb2jg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyArNHFO_WGEIWs3VW22ongz4_PjXtFjlzk"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "781672402025-du40sin7u9grrmpeujklni1ptkhcb2jg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

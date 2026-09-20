@@ -41,6 +41,19 @@ jobs:
           sed -i '/id("com.android.application") version/a\    id("com.google.gms.google-services") version "4.4.4" apply false' android/settings.gradle.kts
           sed -i '/id("com.android.application")/a\    id("com.google.gms.google-services")' android/app/build.gradle.kts
           grep -n "google-services" android/settings.gradle.kts android/app/build.gradle.kts
+      - name: Signature release (keystore)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.jks
+          GRADLE=android/app/build.gradle.kts
+          awk '/^android {/{print; print "    signingConfigs {"; print "        create(\"release\") {"; print "            storeFile = file(\"release.jks\")"; print "            storePassword = System.getenv(\"KEYSTORE_PASSWORD\")"; print "            keyAlias = System.getenv(\"KEY_ALIAS\")"; print "            keyPassword = System.getenv(\"KEY_PASSWORD\")"; print "        }"; print "    }"; next} {print}' "$GRADLE" > "$GRADLE.tmp" && mv "$GRADLE.tmp" "$GRADLE"
+          sed -i 's/signingConfig = signingConfigs.getByName("debug")/signingConfig = signingConfigs.getByName("release")/' "$GRADLE"
+          grep -n "signingConfig\|release.jks" "$GRADLE"
+
 
       - run: flutter pub get
       - run: dart run flutter_launcher_icons
