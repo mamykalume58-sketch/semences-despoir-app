@@ -17,9 +17,17 @@ class FirestoreRepo {
     return _db
         .collection('projects')
         .where('published', isEqualTo: true)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snap) => snap.docs.map(_projectFromDoc).toList());
+        .map((snap) {
+      DateTime t(QueryDocumentSnapshot<Map<String, dynamic>> d) {
+        final v = d.data()['createdAt'];
+        return v is Timestamp ? v.toDate() : DateTime.fromMillisecondsSinceEpoch(0);
+      }
+
+      final docs = snap.docs.toList();
+      docs.sort((a, b) => t(b).compareTo(t(a)));
+      return docs.map(_projectFromDoc).toList();
+    });
   }
 
   static Project _projectFromDoc(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
