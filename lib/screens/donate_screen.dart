@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../data/demo_data.dart';
 import '../services/payment_service.dart';
 import '../services/submissions.dart';
+import '../widgets/payment_status_dialog.dart';
 import '../theme.dart';
 import '../utils.dart';
 import '../widgets/common.dart';
@@ -11,8 +12,9 @@ import '../widgets/common.dart';
 /// Utilisé comme onglet « Don » (sans flèche retour) ou poussé depuis un projet
 /// avec [category] présélectionné (flèche retour automatique).
 class DonateScreen extends StatefulWidget {
-  const DonateScreen({super.key, this.category});
+  const DonateScreen({super.key, this.category, this.onGoTo});
   final String? category;
+  final void Function(int)? onGoTo;
 
   @override
   State<DonateScreen> createState() => _DonateScreenState();
@@ -76,25 +78,43 @@ class _DonateScreenState extends State<DonateScreen> {
     setState(() => _loading = true);
     try {
       if (_payment == 'mobile_money') {
-        await PaymentService.payMobileMoney(
+        final donationId = await PaymentService.payMobileMoney(
           amount: int.parse(_amount.text),
           phone: _phone.text.trim(),
           donorName: _name.text.trim(),
           project: _project,
         );
         if (!mounted) return;
-        showAppSnack(context, 'Demande de paiement envoyée. Confirmez sur votre téléphone pour finaliser votre don.');
-      } else {
-        await SubmissionService.submitDonation({
-          'amount': int.parse(_amount.text),
-          'project': _project,
-          'paymentMethod': _payment,
-          'donorName': _name.text.trim(),
-          'donorPhone': _phone.text.trim(),
+        _amount.clear();
+        _name.clear();
+        _phone.clear();
+        setState(() {
+          _quick = null;
+          _other = false;
+          _loading = false;
         });
-        if (!mounted) return;
-        showAppSnack(context, 'Merci pour votre générosité ! Nous vous contacterons pour finaliser votre don.');
+        await showPaymentStatusDialog(
+          context,
+          donationId: donationId,
+          onGoHome: () {
+            if (widget.onGoTo != null) {
+              widget.onGoTo!(AppTab.home);
+            } else {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            }
+          },
+        );
+        return;
       }
+      await SubmissionService.submitDonation({
+        'amount': int.parse(_amount.text),
+        'project': _project,
+        'paymentMethod': _payment,
+        'donorName': _name.text.trim(),
+        'donorPhone': _phone.text.trim(),
+      });
+      if (!mounted) return;
+      showAppSnack(context, 'Merci pour votre générosité ! Nous vous contacterons pour finaliser votre don.');
       _amount.clear();
       _name.clear();
       _phone.clear();
@@ -105,7 +125,11 @@ class _DonateScreenState extends State<DonateScreen> {
     } catch (e) {
       if (mounted) {
         final message = e.toString().replaceFirst('Exception: ', '');
-        showAppSnack(context, message.isEmpty ? 'Une erreur est survenue. Merci de réessayer dans un instant.' : message, error: true);
+        showAppSnack(
+          context,
+          message.isEmpty ? "Le service est indisponible pour l'instant. Veuillez nous contacter ou réessayer plus tard." : message,
+          error: true,
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);

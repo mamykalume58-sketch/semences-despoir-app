@@ -35,7 +35,7 @@ class _MainShellState extends State<MainShell> {
           children: [
             HomeScreen(onGoTo: _goTo),
             const ProjectsScreen(),
-            const DonateScreen(),
+            DonateScreen(onGoTo: _goTo),
             const NewsScreen(),
             const MoreScreen(),
           ],
