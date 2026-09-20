@@ -9,6 +9,7 @@ import 'screens/gallery_screen.dart';
 import 'screens/news_detail_screen.dart';
 import 'screens/project_detail_screen.dart';
 import 'screens/volunteer_screen.dart';
+import 'screens/auth/login_screen.dart';
 
 void _push(BuildContext context, Widget page) {
   Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
@@ -22,3 +23,4 @@ void openAbout(BuildContext c) => _push(c, const AboutScreen());
 void openGallery(BuildContext c) => _push(c, const GalleryScreen());
 void openVolunteer(BuildContext c) => _push(c, const VolunteerScreen());
 void openContact(BuildContext c) => _push(c, const ContactScreen());
+void openLogin(BuildContext c) => _push(c, const LoginScreen());

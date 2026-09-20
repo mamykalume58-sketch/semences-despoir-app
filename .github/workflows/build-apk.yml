@@ -32,6 +32,8 @@ jobs:
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
           sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET"/>\n    <application|' "$MANIFEST"
+          sed -i 's|<application|<uses-permission android:name="android.permission.CAMERA"/>\n    <application|' "$MANIFEST"
+          sed -i 's|<application|<uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>\n    <application|' "$MANIFEST"
           sed -i 's|android:label="[^"]*"|android:label="VPLA"|' "$MANIFEST"
           grep -n "INTERNET\|android:label" "$MANIFEST"
 

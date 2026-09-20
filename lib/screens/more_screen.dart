@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../data/app_info.dart';
@@ -5,6 +7,9 @@ import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/contact_tiles.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
+import '../services/member_service.dart';
 
 /// Onglet « Plus » : menu des pages secondaires + toutes les données de l'ancien footer
 /// (marque/slogan, coordonnées, réseaux sociaux, copyright).
@@ -39,6 +44,8 @@ class MoreScreen extends StatelessWidget {
             ),
           ),
 
+          const Gap(16),
+          const _AccountSection(),
           // Pages secondaires (ex-colonnes Navigation + Faire la différence)
           const _GroupTitle('Découvrir'),
           _MenuTile(icon: Icons.info_outline, label: 'Qui sommes-nous', onTap: () => openAbout(context)),
@@ -116,5 +123,73 @@ class _MenuTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _AccountSection extends StatelessWidget {
+  const _AccountSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: AuthService.authStateChanges,
+      builder: (context, authSnap) {
+        final user = authSnap.data;
+        if (user == null) {
+          return _MenuTile(
+            icon: Icons.person_outline,
+            label: 'Se connecter / S\'inscrire',
+            onTap: () => openLogin(context),
+          );
+        }
+        return StreamBuilder<MemberModel?>(
+          stream: MemberService.watchMember(user.uid),
+          builder: (context, memberSnap) {
+            final member = memberSnap.data;
+            final photo = member?.photoUrl;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.bordure),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: AppColors.vertClair,
+                    backgroundImage: (photo != null && photo.isNotEmpty) ? MemoryImage(_decode(photo)) : null,
+                    child: (photo == null || photo.isEmpty)
+                        ? const Icon(Icons.person, color: AppColors.vert)
+                        : null,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(member?.name.isNotEmpty == true ? member!.name : 'Membre', style: AppText.h3),
+                        Text(user.email ?? '', style: AppText.small),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.logout, color: AppColors.texteSecondaire),
+                    onPressed: () => AuthService.signOut(),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  static Uint8List _decode(String dataUrl) {
+    final base64Part = dataUrl.substring(dataUrl.indexOf(',') + 1);
+    return base64Decode(base64Part);
   }
 }
