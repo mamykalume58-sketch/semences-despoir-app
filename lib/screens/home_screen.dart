@@ -183,24 +183,29 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _stats() {
-    final s = DemoData.stats;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-      child: Column(
-        children: [
-          Row(children: [
-            Expanded(child: _StatCard(s[0])),
-            const SizedBox(width: 12),
-            Expanded(child: _StatCard(s[1])),
-          ]),
-          const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: _StatCard(s[2])),
-            const SizedBox(width: 12),
-            Expanded(child: _StatCard(s[3])),
-          ]),
-        ],
-      ),
+    return StreamBuilder<List<Stat>>(
+      stream: FirestoreStats.watchStats(),
+      builder: (context, snapshot) {
+        final s = (snapshot.hasData && snapshot.data!.isNotEmpty) ? snapshot.data! : DemoData.stats;
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+          child: Column(
+            children: [
+              Row(children: [
+                Expanded(child: _StatCard(s[0])),
+                const SizedBox(width: 12),
+                Expanded(child: _StatCard(s[1])),
+              ]),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(child: _StatCard(s[2])),
+                const SizedBox(width: 12),
+                Expanded(child: _StatCard(s[3])),
+              ]),
+            ],
+          ),
+        );
+      },
     );
   }
 
