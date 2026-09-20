@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/demo_data.dart';
+import '../services/payment_service.dart';
 import '../services/submissions.dart';
 import '../theme.dart';
 import '../utils.dart';
@@ -74,15 +75,26 @@ class _DonateScreenState extends State<DonateScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _loading = true);
     try {
-      await SubmissionService.submitDonation({
-        'amount': int.parse(_amount.text),
-        'project': _project,
-        'paymentMethod': _payment,
-        'donorName': _name.text.trim(),
-        'donorPhone': _phone.text.trim(),
-      });
-      if (!mounted) return;
-      showAppSnack(context, 'Merci pour votre générosité ! Nous vous contacterons pour finaliser votre don.');
+      if (_payment == 'mobile_money') {
+        await PaymentService.payMobileMoney(
+          amount: int.parse(_amount.text),
+          phone: _phone.text.trim(),
+          donorName: _name.text.trim(),
+          project: _project,
+        );
+        if (!mounted) return;
+        showAppSnack(context, 'Demande de paiement envoyée. Confirmez sur votre téléphone pour finaliser votre don.');
+      } else {
+        await SubmissionService.submitDonation({
+          'amount': int.parse(_amount.text),
+          'project': _project,
+          'paymentMethod': _payment,
+          'donorName': _name.text.trim(),
+          'donorPhone': _phone.text.trim(),
+        });
+        if (!mounted) return;
+        showAppSnack(context, 'Merci pour votre générosité ! Nous vous contacterons pour finaliser votre don.');
+      }
       _amount.clear();
       _name.clear();
       _phone.clear();
@@ -90,9 +102,10 @@ class _DonateScreenState extends State<DonateScreen> {
         _quick = null;
         _other = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
-        showAppSnack(context, 'Une erreur est survenue. Merci de réessayer dans un instant.', error: true);
+        final message = e.toString().replaceFirst('Exception: ', '');
+        showAppSnack(context, message.isEmpty ? 'Une erreur est survenue. Merci de réessayer dans un instant.' : message, error: true);
       }
     } finally {
       if (mounted) setState(() => _loading = false);
