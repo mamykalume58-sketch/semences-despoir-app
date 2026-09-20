@@ -3,10 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'models.dart';
 
 /// Passerelle Firestore <-> modèles de l'app.
-/// Schéma attendu pour un document de la collection `projects` :
-///   title (string), category (string), summary (string), description (string?),
-///   imageUrl (string?), goal (number?), collected (number, défaut 0),
-///   status (string: 'en_cours' | 'realise' | 'a_venir'), published (bool),
+/// Schéma réel écrit par l'admin (src/pages/projects/ProjectForm.jsx) pour
+/// un document de la collection `projects` :
+///   title (string), category (string), shortDescription (string),
+///   description (string?), imageUrl (string?), goalAmount (number),
+///   collectedAmount (number), status (string: 'brouillon' | 'en_cours' | 'termine' | 'archive'),
+///   published (bool, vrai seulement si status est 'en_cours' ou 'termine'),
 ///   createdAt (timestamp)
 class FirestoreRepo {
   static final _db = FirebaseFirestore.instance;
@@ -26,18 +28,18 @@ class FirestoreRepo {
       id: doc.id,
       title: (d['title'] ?? '') as String,
       category: (d['category'] ?? '') as String,
-      summary: (d['summary'] ?? '') as String,
+      summary: (d['shortDescription'] ?? '') as String,
       description: d['description'] as String?,
       imageUrl: d['imageUrl'] as String?,
-      goal: (d['goal'] as num?)?.toInt(),
-      collected: (d['collected'] as num?)?.toInt() ?? 0,
+      goal: (d['goalAmount'] as num?)?.toInt(),
+      collected: (d['collectedAmount'] as num?)?.toInt() ?? 0,
       status: _statusFromString(d['status'] as String?),
     );
   }
 
   static ProjectStatus _statusFromString(String? value) {
     switch (value) {
-      case 'realise':
+      case 'termine':
         return ProjectStatus.realise;
       case 'a_venir':
         return ProjectStatus.aVenir;
