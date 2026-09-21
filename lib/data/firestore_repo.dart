@@ -10,6 +10,11 @@ import 'models.dart';
 ///   collectedAmount (number), status (string: 'brouillon' | 'en_cours' | 'termine' | 'archive'),
 ///   published (bool, vrai seulement si status est 'en_cours' ou 'termine'),
 ///   createdAt (timestamp)
+///
+/// Schéma de la collection `donations` (écrit par le Worker Shwary) :
+///   amount (number), currency (string), status (string: 'pending' | 'completed' | 'failed' | 'cancelled'),
+///   donorName (string), donorPhone (string), userId (string?), project (string : ID du projet ou 'general'),
+///   projectTitle (string), shwaryTransactionId (string), createdAt (timestamp), completedAt (timestamp?)
 class FirestoreRepo {
   static final _db = FirebaseFirestore.instance;
 
@@ -55,5 +60,26 @@ class FirestoreRepo {
       default:
         return ProjectStatus.enCours;
     }
+  }
+
+  /// Écoute un don précis en temps réel (statut pending/completed/failed...).
+  static Stream<Map<String, dynamic>?> watchDonation(String id) {
+    return _db.collection('donations').doc(id).snapshots().map(
+        (snap) => snap.exists ? {...snap.data()!, 'id': snap.id} : null);
+  }
+
+  /// Écoute toutes les contributions de l'utilisateur connecté, plus récentes en premier.
+  static Stream<List<Map<String, dynamic>>> watchMyDonations(String uid) {
+    return _db.collection('donations').where('userId', isEqualTo: uid).snapshots().map((snap) {
+      final docs = snap.docs.map((d) => {...d.data(), 'id': d.id}).toList();
+      docs.sort((a, b) {
+        final ta = a['createdAt'];
+        final tb = b['createdAt'];
+        final dateA = ta is Timestamp ? ta.toDate() : DateTime.fromMillisecondsSinceEpoch(0);
+        final dateB = tb is Timestamp ? tb.toDate() : DateTime.fromMillisecondsSinceEpoch(0);
+        return dateB.compareTo(dateA);
+      });
+      return docs;
+    });
   }
 }
