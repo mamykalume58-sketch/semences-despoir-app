@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../data/app_info.dart';
 import '../navigation.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/delete_account_tile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../services/member_service.dart';
@@ -45,6 +47,7 @@ class MoreScreen extends StatelessWidget {
 
           const Gap(16),
           const _AccountSection(),
+          const DeleteAccountTile(),
           // Pages secondaires (ex-colonnes Navigation + Faire la différence)
           const _GroupTitle('Découvrir'),
           _MenuTile(icon: Icons.info_outline, label: 'Qui sommes-nous', onTap: () => openAbout(context)),
@@ -54,6 +57,7 @@ class MoreScreen extends StatelessWidget {
           const _GroupTitle('Faire la différence'),
           _MenuTile(icon: Icons.favorite_border, label: 'Devenir bénévole', onTap: () => openVolunteer(context)),
           _MenuTile(icon: Icons.mail_outline, label: 'Nous écrire', onTap: () => openContact(context)),
+          _MenuTile(icon: Icons.privacy_tip_outlined, label: 'Politique de confidentialité', onTap: () => launchUrl(Uri.parse('https://vivre-pour-les-autres.mamykalume58.workers.dev/'), mode: LaunchMode.externalApplication)),
 
           // Copyright (ex-footer-bottom)
           const Gap(32),

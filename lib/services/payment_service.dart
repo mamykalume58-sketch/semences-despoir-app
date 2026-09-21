@@ -37,7 +37,7 @@ class PaymentService {
         'project': project,
         'sandbox': sandbox,
       }),
-    );
+    ).timeout(const Duration(seconds: 30));
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
 

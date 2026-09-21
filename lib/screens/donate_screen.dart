@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/demo_data.dart';
-import '../services/payment_service.dart';
+import '../data/models.dart';
 import '../services/submissions.dart';
 import '../widgets/payment_status_dialog.dart';
 import '../theme.dart';
@@ -10,10 +10,10 @@ import '../utils.dart';
 import '../widgets/common.dart';
 
 /// Utilisé comme onglet « Don » (sans flèche retour) ou poussé depuis un projet
-/// avec [category] présélectionné (flèche retour automatique).
+/// avec [project] présélectionné (flèche retour automatique).
 class DonateScreen extends StatefulWidget {
-  const DonateScreen({super.key, this.category, this.onGoTo});
-  final String? category;
+  const DonateScreen({super.key, this.project, this.onGoTo});
+  final Project? project;
   final void Function(int)? onGoTo;
 
   @override
@@ -35,9 +35,7 @@ class _DonateScreenState extends State<DonateScreen> {
 
   int? _quick;
   bool _other = false;
-  late String _project = DemoData.donationTargets.containsKey(widget.category)
-      ? widget.category!
-      : 'general';
+  late String _project = widget.project?.id ?? 'general';
   String _payment = 'mobile_money';
   bool _loading = false;
 
@@ -75,37 +73,37 @@ class _DonateScreenState extends State<DonateScreen> {
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (_payment == 'mobile_money') {
+      final amount = int.parse(_amount.text);
+      final phone = _phone.text.trim();
+      final donorName = _name.text.trim();
+      final project = _project;
+      _amount.clear();
+      _name.clear();
+      _phone.clear();
+      setState(() {
+        _quick = null;
+        _other = false;
+      });
+      await showPaymentStatusDialog(
+        context,
+        amount: amount,
+        phone: phone,
+        donorName: donorName,
+        project: project,
+        onGoHome: () {
+          if (widget.onGoTo != null) {
+            widget.onGoTo!(AppTab.home);
+          } else {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          }
+        },
+      );
+      return;
+    }
+
     setState(() => _loading = true);
     try {
-      if (_payment == 'mobile_money') {
-        final donationId = await PaymentService.payMobileMoney(
-          amount: int.parse(_amount.text),
-          phone: _phone.text.trim(),
-          donorName: _name.text.trim(),
-          project: _project,
-        );
-        if (!mounted) return;
-        _amount.clear();
-        _name.clear();
-        _phone.clear();
-        setState(() {
-          _quick = null;
-          _other = false;
-          _loading = false;
-        });
-        await showPaymentStatusDialog(
-          context,
-          donationId: donationId,
-          onGoHome: () {
-            if (widget.onGoTo != null) {
-              widget.onGoTo!(AppTab.home);
-            } else {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            }
-          },
-        );
-        return;
-      }
       await SubmissionService.submitDonation({
         'amount': int.parse(_amount.text),
         'project': _project,
@@ -124,12 +122,7 @@ class _DonateScreenState extends State<DonateScreen> {
       });
     } catch (e) {
       if (mounted) {
-        final message = e.toString().replaceFirst('Exception: ', '');
-        showAppSnack(
-          context,
-          message.isEmpty ? "Le service est indisponible pour l'instant. Veuillez nous contacter ou réessayer plus tard." : message,
-          error: true,
-        );
+        showAppSnack(context, 'Une erreur est survenue. Merci de réessayer dans un instant.', error: true);
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -178,6 +171,12 @@ class _DonateScreenState extends State<DonateScreen> {
                       const Gap(18),
                       const Text('Projet à soutenir', style: AppText.h3),
                       const Gap(10),
+                      if (widget.project != null)
+                        SelectableTile(
+                          title: widget.project!.title,
+                          selected: _project == widget.project!.id,
+                          onTap: () => setState(() => _project = widget.project!.id),
+                        ),
                       for (final e in DemoData.donationTargets.entries)
                         SelectableTile(
                           title: e.value,

@@ -12,7 +12,7 @@ import 'models.dart';
 ///   createdAt (timestamp)
 ///
 /// Schéma de la collection `donations` (écrit par le Worker Shwary) :
-///   amount (number), currency (string), status (string: 'pending' | 'completed' | 'failed' | 'cancelled'),
+///   amount (number), currency (string), status (string: 'pending' | 'confirme' | 'echoue'),
 ///   donorName (string), donorPhone (string), userId (string?), project (string : ID du projet ou 'general'),
 ///   projectTitle (string), shwaryTransactionId (string), createdAt (timestamp), completedAt (timestamp?)
 class FirestoreRepo {
@@ -62,7 +62,7 @@ class FirestoreRepo {
     }
   }
 
-  /// Écoute un don précis en temps réel (statut pending/completed/failed...).
+  /// Écoute un don précis en temps réel (statut pending/confirme/echoue).
   static Stream<Map<String, dynamic>?> watchDonation(String id) {
     return _db.collection('donations').doc(id).snapshots().map(
         (snap) => snap.exists ? {...snap.data()!, 'id': snap.id} : null);

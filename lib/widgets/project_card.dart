@@ -92,7 +92,7 @@ class ProjectCard extends StatelessWidget {
       return AppButton(
         label: 'Soutenir ce projet',
         small: true,
-        onPressed: () => openDonate(context, category: p.category),
+        onPressed: () => openDonate(context, project: p),
       );
     }
     if (p.status == ProjectStatus.realise) {

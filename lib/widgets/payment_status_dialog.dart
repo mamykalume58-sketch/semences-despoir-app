@@ -3,28 +3,48 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../services/payment_service.dart';
 import '../theme.dart';
 import 'common.dart';
 
-enum _PayState { waiting, success, failed, serverError }
+enum _PayState { initiating, waiting, success, failed, serverError }
 
-/// Popup non-fermable qui écoute donations/{donationId} en temps réel
-/// et affiche le résultat du paiement une fois le statut connu.
+/// Popup non-fermable qui lance elle-même le paiement Mobile Money,
+/// puis écoute donations/{id} en temps réel pour afficher le résultat.
 Future<void> showPaymentStatusDialog(
   BuildContext context, {
-  required String donationId,
+  required int amount,
+  required String phone,
+  required String donorName,
+  required String project,
   required VoidCallback onGoHome,
 }) {
   return showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (_) => PaymentStatusDialog(donationId: donationId, onGoHome: onGoHome),
+    builder: (_) => PaymentStatusDialog(
+      amount: amount,
+      phone: phone,
+      donorName: donorName,
+      project: project,
+      onGoHome: onGoHome,
+    ),
   );
 }
 
 class PaymentStatusDialog extends StatefulWidget {
-  const PaymentStatusDialog({super.key, required this.donationId, required this.onGoHome});
-  final String donationId;
+  const PaymentStatusDialog({
+    super.key,
+    required this.amount,
+    required this.phone,
+    required this.donorName,
+    required this.project,
+    required this.onGoHome,
+  });
+  final int amount;
+  final String phone;
+  final String donorName;
+  final String project;
   final VoidCallback onGoHome;
 
   @override
@@ -32,16 +52,37 @@ class PaymentStatusDialog extends StatefulWidget {
 }
 
 class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
-  _PayState _state = _PayState.waiting;
+  _PayState _state = _PayState.initiating;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _sub;
   Timer? _timeout;
 
   @override
   void initState() {
     super.initState();
+    _start();
+  }
+
+  Future<void> _start() async {
+    try {
+      final donationId = await PaymentService.payMobileMoney(
+        amount: widget.amount,
+        phone: widget.phone,
+        donorName: widget.donorName,
+        project: widget.project,
+      );
+      if (!mounted) return;
+      setState(() => _state = _PayState.waiting);
+      _listen(donationId);
+    } catch (e) {
+      debugPrint('Erreur initiation paiement Mobile Money : $e');
+      if (mounted) setState(() => _state = _PayState.serverError);
+    }
+  }
+
+  void _listen(String donationId) {
     _sub = FirebaseFirestore.instance
         .collection('donations')
-        .doc(widget.donationId)
+        .doc(donationId)
         .snapshots()
         .listen(
       (snap) {
@@ -54,11 +95,11 @@ class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
         }
         // sinon (pending) : on continue d'attendre
       },
-      onError: (_) {
+      onError: (error) {
+        debugPrint('Erreur écoute statut paiement : $error');
         if (mounted) setState(() => _state = _PayState.serverError);
       },
     );
-    // Si rien n'a bougé après 90s, on considère que ça n'a pas abouti.
     _timeout = Timer(const Duration(seconds: 90), () {
       if (mounted && _state == _PayState.waiting) {
         setState(() => _state = _PayState.failed);
@@ -86,6 +127,19 @@ class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
 
   Widget _content() {
     switch (_state) {
+      case _PayState.initiating:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            CircularProgressIndicator(color: AppColors.vert),
+            Gap(20),
+            Text(
+              'Initialisation du paiement...',
+              textAlign: TextAlign.center,
+              style: AppText.body,
+            ),
+          ],
+        );
       case _PayState.waiting:
         return Column(
           mainAxisSize: MainAxisSize.min,

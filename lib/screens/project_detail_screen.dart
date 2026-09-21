@@ -148,7 +148,7 @@ class _FundingCard extends StatelessWidget {
                     AppButton(
                       label: 'Soutenir ce projet',
                       expand: true,
-                      onPressed: () => openDonate(context, category: p.category),
+                      onPressed: () => openDonate(context, project: p),
                     ),
                   ],
                 ],
