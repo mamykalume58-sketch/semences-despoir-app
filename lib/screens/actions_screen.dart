@@ -47,7 +47,8 @@ class _ActionsScreenState extends State<ActionsScreen> {
             stream: _stream,
             builder: (context, snap) {
               if (snap.hasError) {
-                return _Message('Lecture des actions impossible.\n${snap.error}');
+                debugPrint('Lecture actions : ${snap.error}');
+                return const _Message('Impossible de charger les actions pour le moment. Vérifiez votre connexion et réessayez.');
               }
               if (!snap.hasData) {
                 return const Padding(

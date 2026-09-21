@@ -61,7 +61,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
             child: StreamBuilder<List<GalleryItem>>(
               stream: _stream,
               builder: (context, snap) {
-                if (snap.hasError) return _message('Lecture de la galerie impossible.\n${snap.error}');
+                if (snap.hasError) {
+                  debugPrint('Lecture galerie : ${snap.error}');
+                  return _message('Impossible de charger la galerie pour le moment. Vérifiez votre connexion et réessayez.');
+                }
                 if (!snap.hasData) {
                   return const Center(child: CircularProgressIndicator(color: AppColors.vert));
                 }
