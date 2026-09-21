@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "781672402025-vk2mis8r8u7sn630np1ejlusui5573j4.apps.googleusercontent.com",
+          "client_id": "781672402025-lc0aui09bdva60ke578vtrvfs6139dk7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.semencesdespoir.semences_despoir",
-            "certificate_hash": "a9f2fd5f31e7f4476b3d19db9a09fe891c3f380f"
+            "certificate_hash": "29f0e0320bf90ed0a63bd406ade9711d617d2643"
           }
         },
         {
