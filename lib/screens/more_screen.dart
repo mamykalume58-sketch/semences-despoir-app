@@ -53,6 +53,7 @@ class MoreScreen extends StatelessWidget {
           _MenuTile(icon: Icons.info_outline, label: 'Qui sommes-nous', onTap: () => openAbout(context)),
           _MenuTile(icon: Icons.volunteer_activism_outlined, label: 'Nos actions', onTap: () => openActions(context)),
           _MenuTile(icon: Icons.photo_library_outlined, label: 'Galerie', onTap: () => openGallery(context)),
+          _MenuTile(icon: Icons.receipt_long_outlined, label: 'Mes contributions', onTap: () => openMyContributions(context)),
 
           const _GroupTitle('Faire la différence'),
           _MenuTile(icon: Icons.favorite_border, label: 'Devenir bénévole', onTap: () => openVolunteer(context)),

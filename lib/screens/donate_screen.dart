@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../data/demo_data.dart';
+import '../data/firestore_repo.dart';
 import '../data/models.dart';
 import '../services/submissions.dart';
 import '../widgets/payment_status_dialog.dart';
@@ -22,6 +22,7 @@ class DonateScreen extends StatefulWidget {
 
 class _DonateScreenState extends State<DonateScreen> {
   static const _quickAmounts = [5000, 10000, 20000, 50000, 100000];
+  static const _mobileMoneyMinimum = 2900;
 
   static const _payments = <String, List<String>>{
     'mobile_money': ['Mobile Money', 'Orange Money, M-Pesa, Airtel Money'],
@@ -35,7 +36,8 @@ class _DonateScreenState extends State<DonateScreen> {
 
   int? _quick;
   bool _other = false;
-  late String _project = widget.project?.id ?? 'general';
+  late String _projectId = widget.project?.id ?? 'general';
+  late String _projectTitle = widget.project?.title ?? 'Là où le besoin est le plus urgent';
   String _payment = 'mobile_money';
   bool _loading = false;
 
@@ -71,13 +73,22 @@ class _DonateScreenState extends State<DonateScreen> {
     });
   }
 
+  void _selectProject(String id, String title) {
+    setState(() {
+      _projectId = id;
+      _projectTitle = title;
+    });
+  }
+
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+
     if (_payment == 'mobile_money') {
       final amount = int.parse(_amount.text);
       final phone = _phone.text.trim();
       final donorName = _name.text.trim();
-      final project = _project;
+      final project = _projectId;
+      final projectTitle = _projectTitle;
       _amount.clear();
       _name.clear();
       _phone.clear();
@@ -85,12 +96,14 @@ class _DonateScreenState extends State<DonateScreen> {
         _quick = null;
         _other = false;
       });
+
       await showPaymentStatusDialog(
         context,
         amount: amount,
         phone: phone,
         donorName: donorName,
         project: project,
+        projectTitle: projectTitle,
         onGoHome: () {
           if (widget.onGoTo != null) {
             widget.onGoTo!(AppTab.home);
@@ -106,7 +119,8 @@ class _DonateScreenState extends State<DonateScreen> {
     try {
       await SubmissionService.submitDonation({
         'amount': int.parse(_amount.text),
-        'project': _project,
+        'project': _projectId,
+        'projectTitle': _projectTitle,
         'paymentMethod': _payment,
         'donorName': _name.text.trim(),
         'donorPhone': _phone.text.trim(),
@@ -164,25 +178,36 @@ class _DonateScreenState extends State<DonateScreen> {
                         decoration: inputDecoration('Montant (FC)', hint: 'Ex : 50000'),
                         validator: (v) {
                           final n = int.tryParse(v ?? '');
-                          if (n == null || n < 500) return 'Montant minimum : 500 FC';
+                          final min = _payment == 'mobile_money' ? _mobileMoneyMinimum : 500;
+                          if (n == null || n < min) return 'Montant minimum : ${formatFc(min)}';
                           return null;
                         },
                       ),
                       const Gap(18),
                       const Text('Projet à soutenir', style: AppText.h3),
                       const Gap(10),
-                      if (widget.project != null)
-                        SelectableTile(
-                          title: widget.project!.title,
-                          selected: _project == widget.project!.id,
-                          onTap: () => setState(() => _project = widget.project!.id),
-                        ),
-                      for (final e in DemoData.donationTargets.entries)
-                        SelectableTile(
-                          title: e.value,
-                          selected: _project == e.key,
-                          onTap: () => setState(() => _project = e.key),
-                        ),
+                      SelectableTile(
+                        title: 'Là où le besoin est le plus urgent',
+                        selected: _projectId == 'general',
+                        onTap: () => _selectProject('general', 'Là où le besoin est le plus urgent'),
+                      ),
+                      StreamBuilder<List<Project>>(
+                        stream: FirestoreRepo.watchProjects(),
+                        builder: (context, snap) {
+                          final projects = snap.data ?? const <Project>[];
+                          if (projects.isEmpty) return const SizedBox.shrink();
+                          return Column(
+                            children: [
+                              for (final p in projects)
+                                SelectableTile(
+                                  title: p.title,
+                                  selected: _projectId == p.id,
+                                  onTap: () => _selectProject(p.id, p.title),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),

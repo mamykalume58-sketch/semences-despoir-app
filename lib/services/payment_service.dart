@@ -25,6 +25,8 @@ class PaymentService {
     required String phone,
     required String donorName,
     required String project,
+    String? projectTitle,
+    String? userId,
     bool sandbox = false,
   }) async {
     final response = await http.post(
@@ -35,6 +37,8 @@ class PaymentService {
         'clientPhoneNumber': normalizePhone(phone),
         'donorName': donorName,
         'project': project,
+        'projectTitle': projectTitle,
+        'userId': userId,
         'sandbox': sandbox,
       }),
     ).timeout(const Duration(seconds: 30));

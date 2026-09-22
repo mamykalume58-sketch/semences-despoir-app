@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/payment_service.dart';
@@ -17,6 +18,7 @@ Future<void> showPaymentStatusDialog(
   required String phone,
   required String donorName,
   required String project,
+  String? projectTitle,
   required VoidCallback onGoHome,
 }) {
   return showDialog(
@@ -27,6 +29,7 @@ Future<void> showPaymentStatusDialog(
       phone: phone,
       donorName: donorName,
       project: project,
+      projectTitle: projectTitle,
       onGoHome: onGoHome,
     ),
   );
@@ -39,12 +42,15 @@ class PaymentStatusDialog extends StatefulWidget {
     required this.phone,
     required this.donorName,
     required this.project,
+    this.projectTitle,
     required this.onGoHome,
   });
+
   final int amount;
   final String phone;
   final String donorName;
   final String project;
+  final String? projectTitle;
   final VoidCallback onGoHome;
 
   @override
@@ -69,6 +75,8 @@ class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
         phone: widget.phone,
         donorName: widget.donorName,
         project: widget.project,
+        projectTitle: widget.projectTitle,
+        userId: FirebaseAuth.instance.currentUser?.uid,
       );
       if (!mounted) return;
       setState(() => _state = _PayState.waiting);
@@ -88,9 +96,9 @@ class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
       (snap) {
         if (!mounted) return;
         final status = snap.data()?['status'] as String?;
-        if (status == 'confirme') {
+        if (status == 'completed') {
           setState(() => _state = _PayState.success);
-        } else if (status == 'echoue') {
+        } else if (status == 'failed' || status == 'cancelled') {
           setState(() => _state = _PayState.failed);
         }
         // sinon (pending) : on continue d'attendre
@@ -100,6 +108,7 @@ class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
         if (mounted) setState(() => _state = _PayState.serverError);
       },
     );
+
     _timeout = Timer(const Duration(seconds: 90), () {
       if (mounted && _state == _PayState.waiting) {
         setState(() => _state = _PayState.failed);
