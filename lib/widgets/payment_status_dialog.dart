@@ -64,6 +64,7 @@ class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
   _PayState _state = _PayState.initiating;
   String? _donationId;
   String? _checkoutUrl;
+  late final String _idempotencyKey = PaymentService.newIdempotencyKey();
   Timer? _poll;
   Timer? _timeout;
 
@@ -82,6 +83,7 @@ class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
         project: widget.project,
         projectTitle: widget.projectTitle,
         network: widget.network,
+        idempotencyKey: _idempotencyKey,
       );
       if (!mounted) return;
       _donationId = result.id;

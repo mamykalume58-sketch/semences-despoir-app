@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 
 /// Appelle le Worker Cloudflare qui fait le pont avec l'API SasPay
@@ -7,6 +8,14 @@ class PaymentService {
   PaymentService._();
 
   static const _baseUrl = 'https://semences-despoir-shwary.mamykalume58.workers.dev';
+
+  /// Génère une clé unique pour une tentative de don. À créer UNE FOIS par
+  /// tentative (pas à chaque appel réseau), pour que SasPay puisse détecter
+  /// un vrai retry et éviter de pousser deux demandes de paiement.
+  static String newIdempotencyKey() {
+    final bytes = List<int>.generate(16, (_) => Random.secure().nextInt(256));
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+  }
 
   /// Convertit un numéro local (ex: "0812345678" ou "812345678")
   /// au format international attendu par le Worker (+243...).
@@ -28,6 +37,7 @@ class PaymentService {
     required String donorName,
     required String project,
     required String network,
+    required String idempotencyKey,
     String? projectTitle,
   }) async {
     final response = await http.post(
@@ -40,6 +50,7 @@ class PaymentService {
         'project': project,
         'projectTitle': projectTitle,
         'network': network,
+        'idempotencyKey': idempotencyKey,
       }),
     ).timeout(const Duration(seconds: 30));
 
