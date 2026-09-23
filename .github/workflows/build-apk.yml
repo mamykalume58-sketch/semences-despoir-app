@@ -5,6 +5,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -61,6 +64,45 @@ jobs:
       - run: flutter pub get
       - run: dart run flutter_launcher_icons
       - run: flutter build apk --release
+
+      - name: Extraire la version depuis pubspec.yaml
+        id: version
+        run: |
+          VERSION_LINE=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          VERSION_NAME=$(echo "$VERSION_LINE" | cut -d'+' -f1)
+          VERSION_CODE=$(echo "$VERSION_LINE" | cut -d'+' -f2)
+          echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "Version : $VERSION_NAME+$VERSION_CODE"
+
+      - name: Créer la GitHub Release avec l'APK
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.version.outputs.name }}+${{ steps.version.outputs.code }}"
+          gh release create "$TAG" \
+            build/app/outputs/flutter-apk/app-release.apk \
+            --title "$TAG" \
+            --notes "Build automatique." \
+            --repo "${{ github.repository }}"
+          TAG_URL=$(echo "$TAG" | sed 's/+/%2B/g')
+          URL="https://github.com/${{ github.repository }}/releases/download/$TAG_URL/app-release.apk"
+          SIZE=$(stat -c%s build/app/outputs/flutter-apk/app-release.apk)
+          echo "download_url=$URL" >> "$GITHUB_OUTPUT"
+          echo "size_bytes=$SIZE" >> "$GITHUB_OUTPUT"
+
+      - name: Publier la version dans Firestore
+        env:
+          FIREBASE_SERVICE_ACCOUNT_SEMENCES: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SEMENCES }}
+          PACKAGE_NAME: com.semencesdespoir.semences_despoir
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+          VERSION_CODE: ${{ steps.version.outputs.code }}
+          DOWNLOAD_URL: ${{ steps.release.outputs.download_url }}
+          SIZE_BYTES: ${{ steps.release.outputs.size_bytes }}
+        run: |
+          pip install --break-system-packages requests pyjwt
+          python3 scripts_publish_version.py
 
       - uses: actions/upload-artifact@v4
         with:
