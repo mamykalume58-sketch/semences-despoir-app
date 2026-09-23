@@ -22,7 +22,7 @@ class DonateScreen extends StatefulWidget {
 
 class _DonateScreenState extends State<DonateScreen> {
   static const _quickAmounts = [5000, 10000, 20000, 50000, 100000];
-  static const _mobileMoneyMinimum = 500;
+  static const _mobileMoneyMinimum = 799;
 
   static const _payments = <String, List<String>>{
     'mobile_money': ['Mobile Money', 'Orange Money, M-Pesa, Airtel Money'],
