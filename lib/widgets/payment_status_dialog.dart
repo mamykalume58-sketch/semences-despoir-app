@@ -1,23 +1,24 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../services/payment_service.dart';
 import '../theme.dart';
 import 'common.dart';
 
-enum _PayState { initiating, waiting, success, failed, serverError }
+enum _PayState { initiating, needsRedirect, waiting, success, failed, serverError }
 
 /// Popup non-fermable qui lance elle-même le paiement Mobile Money,
-/// puis écoute donations/{id} en temps réel pour afficher le résultat.
+/// puis sonde régulièrement le statut réel auprès du Worker (SasPay)
+/// jusqu'à confirmation, échec, ou expiration du délai.
 Future<void> showPaymentStatusDialog(
   BuildContext context, {
   required int amount,
   required String phone,
   required String donorName,
   required String project,
+  required String network,
   String? projectTitle,
   required VoidCallback onGoHome,
 }) {
@@ -29,6 +30,7 @@ Future<void> showPaymentStatusDialog(
       phone: phone,
       donorName: donorName,
       project: project,
+      network: network,
       projectTitle: projectTitle,
       onGoHome: onGoHome,
     ),
@@ -42,14 +44,15 @@ class PaymentStatusDialog extends StatefulWidget {
     required this.phone,
     required this.donorName,
     required this.project,
+    required this.network,
     this.projectTitle,
     required this.onGoHome,
   });
-
   final int amount;
   final String phone;
   final String donorName;
   final String project;
+  final String network;
   final String? projectTitle;
   final VoidCallback onGoHome;
 
@@ -59,7 +62,9 @@ class PaymentStatusDialog extends StatefulWidget {
 
 class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
   _PayState _state = _PayState.initiating;
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _sub;
+  String? _donationId;
+  String? _checkoutUrl;
+  Timer? _poll;
   Timer? _timeout;
 
   @override
@@ -70,55 +75,75 @@ class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
 
   Future<void> _start() async {
     try {
-      final donationId = await PaymentService.payMobileMoney(
+      final result = await PaymentService.payMobileMoney(
         amount: widget.amount,
         phone: widget.phone,
         donorName: widget.donorName,
         project: widget.project,
         projectTitle: widget.projectTitle,
-        userId: FirebaseAuth.instance.currentUser?.uid,
+        network: widget.network,
       );
       if (!mounted) return;
-      setState(() => _state = _PayState.waiting);
-      _listen(donationId);
+      _donationId = result.id;
+      if (result.checkoutUrl.isNotEmpty) {
+        _checkoutUrl = result.checkoutUrl;
+        setState(() => _state = _PayState.needsRedirect);
+      } else {
+        setState(() => _state = _PayState.waiting);
+        _startPolling();
+      }
     } catch (e) {
       debugPrint('Erreur initiation paiement Mobile Money : $e');
       if (mounted) setState(() => _state = _PayState.serverError);
     }
   }
 
-  void _listen(String donationId) {
-    _sub = FirebaseFirestore.instance
-        .collection('donations')
-        .doc(donationId)
-        .snapshots()
-        .listen(
-      (snap) {
-        if (!mounted) return;
-        final status = snap.data()?['status'] as String?;
-        if (status == 'completed') {
-          setState(() => _state = _PayState.success);
-        } else if (status == 'failed' || status == 'cancelled') {
-          setState(() => _state = _PayState.failed);
-        }
-        // sinon (pending) : on continue d'attendre
-      },
-      onError: (error) {
-        debugPrint('Erreur écoute statut paiement : $error');
-        if (mounted) setState(() => _state = _PayState.serverError);
-      },
-    );
+  Future<void> _openCheckout() async {
+    final url = _checkoutUrl;
+    if (url == null) return;
+    final uri = Uri.parse(url);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      // Si l'ouverture échoue, on laisse quand même le sondage démarrer :
+      // le client a pu compléter le paiement autrement.
+    }
+    if (!mounted) return;
+    setState(() => _state = _PayState.waiting);
+    _startPolling();
+  }
 
+  void _startPolling() {
     _timeout = Timer(const Duration(seconds: 90), () {
       if (mounted && _state == _PayState.waiting) {
         setState(() => _state = _PayState.failed);
+      }
+    });
+    _poll = Timer.periodic(const Duration(seconds: 4), (_) async {
+      if (_donationId == null) return;
+      try {
+        final status = await PaymentService.verifyStatus(_donationId!);
+        if (!mounted) return;
+        if (status == 'confirme') {
+          _poll?.cancel();
+          _timeout?.cancel();
+          setState(() => _state = _PayState.success);
+        } else if (status == 'echoue') {
+          _poll?.cancel();
+          _timeout?.cancel();
+          setState(() => _state = _PayState.failed);
+        }
+        // sinon (pending) : on continue de sonder
+      } catch (e) {
+        debugPrint('Erreur vérification statut : $e');
+        // Erreur ponctuelle réseau : on retente au prochain tick.
       }
     });
   }
 
   @override
   void dispose() {
-    _sub?.cancel();
+    _poll?.cancel();
     _timeout?.cancel();
     super.dispose();
   }
@@ -142,10 +167,27 @@ class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
           children: const [
             CircularProgressIndicator(color: AppColors.vert),
             Gap(20),
-            Text(
-              'Initialisation du paiement...',
+            Text('Initialisation du paiement...', textAlign: TextAlign.center, style: AppText.body),
+          ],
+        );
+      case _PayState.needsRedirect:
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.open_in_new, color: AppColors.vert, size: 48),
+            const Gap(16),
+            const Text(
+              'Une page de paiement va s\'ouvrir pour finaliser votre contribution.',
               textAlign: TextAlign.center,
               style: AppText.body,
+            ),
+            const Gap(20),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _openCheckout,
+                child: const Text('Continuer le paiement'),
+              ),
             ),
           ],
         );

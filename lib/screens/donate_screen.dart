@@ -22,11 +22,17 @@ class DonateScreen extends StatefulWidget {
 
 class _DonateScreenState extends State<DonateScreen> {
   static const _quickAmounts = [5000, 10000, 20000, 50000, 100000];
-  static const _mobileMoneyMinimum = 2900;
+  static const _mobileMoneyMinimum = 500;
 
   static const _payments = <String, List<String>>{
     'mobile_money': ['Mobile Money', 'Orange Money, M-Pesa, Airtel Money'],
     'other': ['Autre moyen', 'Nous vous contacterons pour convenir ensemble'],
+  };
+
+  static const _networks = <String, String>{
+    'airtel_cd': 'Airtel Money',
+    'orange_cd': 'Orange Money',
+    'vodacom_cd': 'M-Pesa (Vodacom)',
   };
 
   final _formKey = GlobalKey<FormState>();
@@ -39,7 +45,9 @@ class _DonateScreenState extends State<DonateScreen> {
   late String _projectId = widget.project?.id ?? 'general';
   late String _projectTitle = widget.project?.title ?? 'Là où le besoin est le plus urgent';
   String _payment = 'mobile_money';
+  String? _network;
   bool _loading = false;
+  String? _networkError;
 
   @override
   void dispose() {
@@ -84,11 +92,18 @@ class _DonateScreenState extends State<DonateScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     if (_payment == 'mobile_money') {
+      if (_network == null) {
+        setState(() => _networkError = 'Choisissez votre opérateur.');
+        return;
+      }
+      setState(() => _networkError = null);
+
       final amount = int.parse(_amount.text);
       final phone = _phone.text.trim();
       final donorName = _name.text.trim();
       final project = _projectId;
       final projectTitle = _projectTitle;
+      final network = _network!;
       _amount.clear();
       _name.clear();
       _phone.clear();
@@ -104,6 +119,7 @@ class _DonateScreenState extends State<DonateScreen> {
         donorName: donorName,
         project: project,
         projectTitle: projectTitle,
+        network: network,
         onGoHome: () {
           if (widget.onGoTo != null) {
             widget.onGoTo!(AppTab.home);
@@ -233,6 +249,25 @@ class _DonateScreenState extends State<DonateScreen> {
                           selected: _payment == e.key,
                           onTap: () => setState(() => _payment = e.key),
                         ),
+                      if (_payment == 'mobile_money') ...[
+                        const Gap(14),
+                        const Text('Choisissez votre opérateur', style: AppText.h3),
+                        const Gap(10),
+                        for (final e in _networks.entries)
+                          SelectableTile(
+                            title: e.value,
+                            selected: _network == e.key,
+                            onTap: () => setState(() {
+                              _network = e.key;
+                              _networkError = null;
+                            }),
+                          ),
+                        if (_networkError != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Text(_networkError!, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+                          ),
+                      ],
                       const Gap(8),
                       TextFormField(
                         controller: _name,
