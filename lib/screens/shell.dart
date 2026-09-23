@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/version_service.dart';
+import '../widgets/update_dialog.dart';
 
 import '../theme.dart';
 import '../utils.dart';
@@ -18,6 +20,23 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _index = AppTab.home;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkUpdate());
+  }
+
+  Future<void> _checkUpdate() async {
+    try {
+      final info = await VersionService().checkForUpdate();
+      if (info != null && mounted) {
+        await showUpdateDialog(context, info);
+      }
+    } catch (e) {
+      debugPrint('Erreur vérification mise à jour : $e');
+    }
+  }
 
   void _goTo(int i) => setState(() => _index = i);
 
