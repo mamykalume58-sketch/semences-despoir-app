@@ -1,107 +1,141 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_info.dart';
+import '../services/update_download_service.dart';
 import '../services/version_service.dart';
 import '../theme.dart';
 
-/// Affiche le dialogue de mise à jour si [info] est non-null.
-/// Non-fermable par retour/tap-extérieur si [info.forceUpdate] est vrai.
-Future<void> showUpdateDialog(BuildContext context, UpdateInfo info) {
-  return showDialog(
+/// Affiche le bottom sheet de mise à jour et gère le téléchargement +
+/// l'installation directement depuis l'app.
+Future<void> showUpdateDialog(
+  BuildContext context, {
+  required UpdateInfo info,
+}) {
+  return showModalBottomSheet(
     context: context,
-    barrierDismissible: !info.forceUpdate,
-    builder: (_) => PopScope(
-      canPop: !info.forceUpdate,
-      child: UpdateDialog(info: info),
-    ),
+    isDismissible: !info.forceUpdate,
+    enableDrag: !info.forceUpdate,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _UpdateSheet(info: info),
   );
 }
 
-class UpdateDialog extends StatefulWidget {
-  const UpdateDialog({super.key, required this.info});
+class _UpdateSheet extends StatefulWidget {
   final UpdateInfo info;
+  const _UpdateSheet({required this.info});
 
   @override
-  State<UpdateDialog> createState() => _UpdateDialogState();
+  State<_UpdateSheet> createState() => _UpdateSheetState();
 }
 
-class _UpdateDialogState extends State<UpdateDialog> {
-  final _service = VersionService();
+class _UpdateSheetState extends State<_UpdateSheet> {
+  final _downloadService = UpdateDownloadService();
   bool _downloading = false;
   double _progress = 0;
   String? _error;
+
+  Future<void> _startDownload() async {
+    setState(() {
+      _downloading = true;
+      _error = null;
+    });
+    try {
+      final file = await _downloadService.downloadApk(
+        widget.info.downloadUrl,
+        onProgress: (p) => setState(() => _progress = p),
+      );
+      await _downloadService.installApk(file);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _downloading = false;
+        _error = 'Échec du téléchargement. Réessayez dans un instant.';
+      });
+    }
+  }
 
   String get _sizeLabel {
     final mb = widget.info.sizeBytes / (1024 * 1024);
     return '${mb.toStringAsFixed(1)} Mo';
   }
 
-  Future<void> _update() async {
-    setState(() {
-      _downloading = true;
-      _error = null;
-    });
-    try {
-      await _service.downloadAndInstall(
-        widget.info,
-        onProgress: (p) {
-          if (mounted) setState(() => _progress = p);
-        },
-      );
-      if (mounted) Navigator.of(context).pop();
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _downloading = false;
-          _error = "$e";
-        });
-      }
-    }
-  }
-
-  void _later() {
-    _service.snoozeUpdate(widget.info.latestVersionCode);
-    Navigator.of(context).pop();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Nouvelle version disponible'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Version ${widget.info.latestVersionName} · $_sizeLabel',
-            style: const TextStyle(color: Colors.black54),
-          ),
-          if (widget.info.message != null && widget.info.message!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(widget.info.message!),
-          ],
-          if (_downloading) ...[
-            const SizedBox(height: 20),
-            LinearProgressIndicator(
-              value: _progress > 0 ? _progress : null,
-              color: AppColors.vert,
-            ),
-            const SizedBox(height: 8),
-            Text('${(_progress * 100).toStringAsFixed(0)} %'),
-          ],
-          if (_error != null) ...[
-            const SizedBox(height: 12),
-            Text(_error!, style: const TextStyle(color: Colors.redAccent)),
-          ],
-        ],
-      ),
-      actions: [
-        if (!widget.info.forceUpdate && !_downloading)
-          TextButton(onPressed: _later, child: const Text('Plus tard')),
-        FilledButton(
-          onPressed: _downloading ? null : _update,
-          child: Text(_downloading ? 'Téléchargement...' : 'Mettre à jour'),
+    return PopScope(
+      canPop: !widget.info.forceUpdate,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-      ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: AppColors.vertClair,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.system_update_rounded, color: AppColors.vert, size: 44),
+            ),
+            const Gap(20),
+            Text('Mettre à jour ${AppInfo.name}', textAlign: TextAlign.center, style: AppText.h3),
+            const Gap(6),
+            Text(
+              'Version ${widget.info.latestVersionName} • $_sizeLabel',
+              style: AppText.small,
+            ),
+            const Gap(16),
+            Text(
+              widget.info.message?.isNotEmpty == true
+                  ? widget.info.message!
+                  : 'Une nouvelle version de l\'app est disponible. Vous pouvez la télécharger maintenant.',
+              textAlign: TextAlign.center,
+              style: AppText.body,
+            ),
+            if (_error != null) ...[
+              const Gap(12),
+              Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+            ],
+            const Gap(24),
+            if (_downloading) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: _progress > 0 ? _progress : null,
+                  minHeight: 8,
+                  backgroundColor: AppColors.vertClair,
+                  color: AppColors.vert,
+                ),
+              ),
+              const Gap(8),
+              Text('${(_progress * 100).toStringAsFixed(0)} %', style: AppText.small),
+              const Gap(16),
+            ] else
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _startDownload,
+                  child: const Text('Télécharger maintenant'),
+                ),
+              ),
+            if (!widget.info.forceUpdate && !_downloading) ...[
+              const Gap(10),
+              TextButton(
+                onPressed: () async {
+                  await VersionService().snoozeUpdate(widget.info.latestVersionCode);
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+                child: const Text('Me le rappeler plus tard'),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

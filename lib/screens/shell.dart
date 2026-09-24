@@ -31,7 +31,7 @@ class _MainShellState extends State<MainShell> {
     try {
       final info = await VersionService().checkForUpdate();
       if (info != null && mounted) {
-        await showUpdateDialog(context, info);
+        await showUpdateDialog(context, info: info);
       }
     } catch (e) {
       debugPrint('Erreur vérification mise à jour : $e');

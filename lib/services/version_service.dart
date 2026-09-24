@@ -1,11 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 /// Infos de mise à jour lues depuis Firestore (app_versions/{packageName}),
 /// alimenté automatiquement par le workflow GitHub Actions à chaque build.
@@ -43,7 +38,8 @@ class VersionService {
   final _versions = FirebaseFirestore.instance.collection('app_versions');
 
   /// Retourne les infos de mise à jour si une version plus récente existe,
-  /// sinon null (app déjà à jour).
+  /// sinon null (app déjà à jour). Le nom du package Android sert d'ID de
+  /// document, alimenté automatiquement par le workflow GitHub Actions.
   Future<UpdateInfo?> checkForUpdate() async {
     final packageInfo = await PackageInfo.fromPlatform();
     final currentVersionCode = int.tryParse(packageInfo.buildNumber) ?? 0;
@@ -67,51 +63,13 @@ class VersionService {
     return info;
   }
 
-  /// Enregistre un rappel de 24h pour une version donnée.
+  /// Enregistre un rappel de 24h pour une version donnée : le prompt de
+  /// mise à jour ne réapparaîtra pas avant ce délai, sauf si une version
+  /// plus récente sort entre-temps.
   Future<void> snoozeUpdate(int versionCode) async {
     final prefs = await SharedPreferences.getInstance();
     final until = DateTime.now().add(const Duration(hours: 24)).millisecondsSinceEpoch;
     await prefs.setInt('update_snoozed_version_code', versionCode);
     await prefs.setInt('update_snoozed_until', until);
-  }
-
-  /// Télécharge l'APK depuis [info.downloadUrl] et lance son installation.
-  /// [onProgress] reçoit une valeur entre 0.0 et 1.0.
-  /// Lève une exception si la permission de stockage/installation est refusée
-  /// ou si le téléchargement échoue.
-  Future<void> downloadAndInstall(
-    UpdateInfo info, {
-    void Function(double progress)? onProgress,
-  }) async {
-    final installPermission = await Permission.requestInstallPackages.request();
-    if (!installPermission.isGranted) {
-      throw Exception("Permission d'installation refusée.");
-    }
-
-    final dir = await getTemporaryDirectory();
-    final filePath = '${dir.path}/update-${info.latestVersionCode}.apk';
-    final file = File(filePath);
-
-    final request = http.Request('GET', Uri.parse(info.downloadUrl));
-    final response = await request.send();
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Téléchargement impossible (${response.statusCode}).');
-    }
-
-    final total = response.contentLength ?? info.sizeBytes;
-    var received = 0;
-    final sink = file.openWrite();
-
-    await response.stream.map((chunk) {
-      received += chunk.length;
-      if (total > 0) onProgress?.call(received / total);
-      return chunk;
-    }).pipe(sink);
-    await sink.close();
-
-    final result = await OpenFilex.open(filePath);
-    if (result.type != ResultType.done) {
-      throw Exception("Impossible d'ouvrir l'installateur : ${result.message}");
-    }
   }
 }
