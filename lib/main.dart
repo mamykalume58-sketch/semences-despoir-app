@@ -14,9 +14,9 @@ Future<void> main() async {
     debugPrint('Firebase init error: $e');
   }
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Color(0xFFB8860B),
+    statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Color(0xFFB8860B),
+    systemNavigationBarColor: Colors.transparent,
     systemNavigationBarIconBrightness: Brightness.light,
   ));
   runApp(const SemencesApp());
@@ -32,6 +32,30 @@ class SemencesApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       home: const SplashScreen(),
+      builder: (context, child) {
+        final padding = MediaQuery.of(context).padding;
+        return Stack(
+          children: [
+            if (child != null) child,
+            // Bandeaux dorés peints par-dessus : Android 15+ ignore la
+            // couleur native des barres système (edge-to-edge forcé), donc
+            // on reproduit l'effet visuel nous-mêmes, à l'exact emplacement
+            // des vraies barres.
+            Positioned(
+              top: 0, left: 0, right: 0,
+              child: IgnorePointer(
+                child: Container(height: padding.top, color: const Color(0xFFB8860B)),
+              ),
+            ),
+            Positioned(
+              bottom: 0, left: 0, right: 0,
+              child: IgnorePointer(
+                child: Container(height: padding.bottom, color: const Color(0xFFB8860B)),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
