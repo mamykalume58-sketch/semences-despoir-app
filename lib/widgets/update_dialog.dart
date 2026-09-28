@@ -4,6 +4,7 @@ import '../data/app_info.dart';
 import '../services/update_download_service.dart';
 import '../services/version_service.dart';
 import '../theme.dart';
+import 'common.dart';
 
 /// Affiche le bottom sheet de mise à jour et gère le téléchargement +
 /// l'installation directement depuis l'app.
