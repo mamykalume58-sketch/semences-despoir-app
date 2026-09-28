@@ -14,8 +14,10 @@ Future<void> main() async {
     debugPrint('Firebase init error: $e');
   }
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
+    statusBarColor: Color(0xFFB8860B),
+    statusBarIconBrightness: Brightness.light,
+    systemNavigationBarColor: Color(0xFFB8860B),
+    systemNavigationBarIconBrightness: Brightness.light,
   ));
   runApp(const SemencesApp());
 }
