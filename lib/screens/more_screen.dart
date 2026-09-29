@@ -11,8 +11,6 @@ import '../widgets/delete_account_tile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../services/member_service.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Onglet « Plus » : menu des pages secondaires + toutes les données de l'ancien footer
 /// (marque/slogan, coordonnées, réseaux sociaux, copyright).
@@ -71,45 +69,8 @@ class MoreScreen extends StatelessWidget {
               style: AppText.small,
             ),
           ),
-          const Gap(8),
-          const Center(child: _DiagVersionInfo()),
         ],
       ),
-    );
-  }
-}
-
-/// TEMPORAIRE — à retirer une fois le diagnostic de mise à jour terminé.
-/// Affiche côte à côte le build installé et celui publié dans Firestore.
-class _DiagVersionInfo extends StatelessWidget {
-  const _DiagVersionInfo();
-
-  Future<String> _load() async {
-    final info = await PackageInfo.fromPlatform();
-    String firestoreCode = '?';
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('app_versions')
-          .doc(info.packageName)
-          .get();
-      firestoreCode = doc.data()?['latestVersionCode']?.toString() ?? 'absent';
-    } catch (e) {
-      firestoreCode = 'erreur';
-    }
-    return 'Installé : build ${info.buildNumber}  •  Firestore : build $firestoreCode  •  pkg ${info.packageName}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<String>(
-      future: _load(),
-      builder: (context, snap) {
-        return Text(
-          snap.data ?? 'Vérification...',
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 10, color: AppColors.texteSecondaire),
-        );
-      },
     );
   }
 }
