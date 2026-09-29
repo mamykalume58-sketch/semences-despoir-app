@@ -199,31 +199,34 @@ class _DonateScreenState extends State<DonateScreen> {
                           return null;
                         },
                       ),
+                      if (widget.project != null) ...[
+                        const Gap(18),
+                        const Text('Projet à soutenir', style: AppText.h3),
+                        const Gap(10),
+                        SelectableTile(
+                          title: 'Là où le besoin est le plus urgent',
+                          selected: _projectId == 'general',
+                          onTap: () => _selectProject('general', 'Là où le besoin est le plus urgent'),
+                        ),
+                        StreamBuilder<List<Project>>(
+                          stream: FirestoreRepo.watchProjects(),
+                          builder: (context, snap) {
+                            final projects = snap.data ?? const <Project>[];
+                            if (projects.isEmpty) return const SizedBox.shrink();
+                            return Column(
+                              children: [
+                                for (final p in projects)
+                                  SelectableTile(
+                                    title: p.title,
+                                    selected: _projectId == p.id,
+                                    onTap: () => _selectProject(p.id, p.title),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
                       const Gap(18),
-                      const Text('Projet à soutenir', style: AppText.h3),
-                      const Gap(10),
-                      SelectableTile(
-                        title: 'Là où le besoin est le plus urgent',
-                        selected: _projectId == 'general',
-                        onTap: () => _selectProject('general', 'Là où le besoin est le plus urgent'),
-                      ),
-                      StreamBuilder<List<Project>>(
-                        stream: FirestoreRepo.watchProjects(),
-                        builder: (context, snap) {
-                          final projects = snap.data ?? const <Project>[];
-                          if (projects.isEmpty) return const SizedBox.shrink();
-                          return Column(
-                            children: [
-                              for (final p in projects)
-                                SelectableTile(
-                                  title: p.title,
-                                  selected: _projectId == p.id,
-                                  onTap: () => _selectProject(p.id, p.title),
-                                ),
-                            ],
-                          );
-                        },
-                      ),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
@@ -231,8 +234,10 @@ class _DonateScreenState extends State<DonateScreen> {
                           color: AppColors.vertClair,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
-                          'Votre don servira à soutenir nos projets : orphelins, veuves, personnes âgées, aide alimentaire, etc.',
+                        child: Text(
+                          widget.project != null
+                              ? 'Votre don servira à soutenir nos projets : orphelins, veuves, personnes âgées, aide alimentaire, etc.'
+                              : 'Votre don est libre : il sera utilisé là où le besoin est le plus urgent parmi nos actions.',
                           style: AppText.small,
                         ),
                       ),
