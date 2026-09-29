@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Charte graphique reprise de css/style.css (site web).
@@ -40,12 +41,13 @@ ThemeData buildTheme() {
     textTheme: GoogleFonts.poppinsTextTheme(base.textTheme)
         .apply(bodyColor: AppColors.texte, displayColor: AppColors.texte),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFB8860B),
       foregroundColor: AppColors.vertFonce,
       elevation: 0,
       scrolledUnderElevation: 1,
       surfaceTintColor: Colors.transparent,
       titleTextStyle: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.vertFonce),
+      systemOverlayStyle: SystemUiOverlayStyle(statusBarIconBrightness: Brightness.dark),
     ),
     navigationBarTheme: const NavigationBarThemeData(
       backgroundColor: Colors.white,
