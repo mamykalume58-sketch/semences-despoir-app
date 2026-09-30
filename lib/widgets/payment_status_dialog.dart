@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../services/payment_service.dart';
 import '../theme.dart';
@@ -102,15 +103,16 @@ class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
 
   Future<void> _openCheckout() async {
     final url = _checkoutUrl;
-    if (url == null) return;
-    final uri = Uri.parse(url);
-    try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      // Si l'ouverture échoue, on laisse quand même le sondage démarrer :
-      // le client a pu compléter le paiement autrement.
-    }
+    if (url == null || url.isEmpty) return;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PaymentCheckoutPage(checkoutUrl: url),
+      ),
+    );
+
     if (!mounted) return;
+
     setState(() => _state = _PayState.waiting);
     _startPolling();
   }
@@ -273,5 +275,86 @@ class _PaymentStatusDialogState extends State<PaymentStatusDialog> {
           ],
         );
     }
+  }
+}
+
+
+class PaymentCheckoutPage extends StatefulWidget {
+  const PaymentCheckoutPage({
+    super.key,
+    required this.checkoutUrl,
+  });
+
+  final String checkoutUrl;
+
+  @override
+  State<PaymentCheckoutPage> createState() => _PaymentCheckoutPageState();
+}
+
+class _PaymentCheckoutPageState extends State<PaymentCheckoutPage> {
+  late final WebViewController _controller;
+  int _progress = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onProgress: (progress) {
+            if (mounted) {
+              setState(() => _progress = progress);
+            }
+          },
+          onNavigationRequest: (request) async {
+            final uri = Uri.tryParse(request.url);
+
+            if (uri == null) {
+              return NavigationDecision.prevent;
+            }
+
+            // Les pages web normales restent dans la WebView.
+            if (uri.scheme == 'http' || uri.scheme == 'https') {
+              return NavigationDecision.navigate;
+            }
+
+            // Pour les liens vers une application mobile ou un autre
+            // schéma (intent:, tel:, etc.), on utilise le système Android.
+            try {
+              await launchUrl(
+                uri,
+                mode: LaunchMode.externalApplication,
+              );
+            } catch (e) {
+              debugPrint('Impossible d\'ouvrir le lien externe : $e');
+            }
+
+            return NavigationDecision.prevent;
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(widget.checkoutUrl));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Paiement sécurisé'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (_progress < 100)
+            LinearProgressIndicator(value: _progress / 100),
+        ],
+      ),
+    );
   }
 }
