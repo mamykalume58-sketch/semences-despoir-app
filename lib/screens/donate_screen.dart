@@ -81,10 +81,10 @@ class _DonateScreenState extends State<DonateScreen> {
     });
   }
 
-  void _selectProject(String id, String title) {
+  void _selectCategory(String category) {
     setState(() {
-      _projectId = id;
-      _projectTitle = title;
+      _projectId = 'category:$category';
+      _projectTitle = category;
     });
   }
 
@@ -199,33 +199,45 @@ class _DonateScreenState extends State<DonateScreen> {
                           return null;
                         },
                       ),
-                      if (widget.project != null) ...[
-                        const Gap(18),
-                        const Text('Projet à soutenir', style: AppText.h3),
-                        const Gap(10),
-                        SelectableTile(
-                          title: 'Là où le besoin est le plus urgent',
-                          selected: _projectId == 'general',
-                          onTap: () => _selectProject('general', 'Là où le besoin est le plus urgent'),
-                        ),
-                        StreamBuilder<List<Project>>(
-                          stream: FirestoreRepo.watchProjects(),
-                          builder: (context, snap) {
-                            final projects = snap.data ?? const <Project>[];
-                            if (projects.isEmpty) return const SizedBox.shrink();
-                            return Column(
-                              children: [
-                                for (final p in projects)
-                                  SelectableTile(
-                                    title: p.title,
-                                    selected: _projectId == p.id,
-                                    onTap: () => _selectProject(p.id, p.title),
-                                  ),
-                              ],
-                            );
-                          },
-                        ),
-                      ],
+                      const Gap(18),
+                      const Text('Catégorie de contribution', style: AppText.h3),
+                      const Gap(10),
+                      SelectableTile(
+                        title: 'Don général',
+                        selected: _projectId == 'general',
+                        onTap: () => setState(() {
+                          _projectId = 'general';
+                          _projectTitle = 'Don général';
+                        }),
+                      ),
+                      StreamBuilder<List<Project>>(
+                        stream: FirestoreRepo.watchProjects(),
+                        builder: (context, snap) {
+                          final projects = snap.data ?? const <Project>[];
+                          final categories = <String>[];
+                          for (final p in projects) {
+                            final category = p.category.trim();
+                            if (category.isNotEmpty && !categories.contains(category)) {
+                              categories.add(category);
+                            }
+                          }
+
+                          if (categories.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return Column(
+                            children: [
+                              for (final category in categories)
+                                SelectableTile(
+                                  title: category,
+                                  selected: _projectId == 'category:$category',
+                                  onTap: () => _selectCategory(category),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
                       const Gap(18),
                       Container(
                         width: double.infinity,
@@ -235,9 +247,7 @@ class _DonateScreenState extends State<DonateScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          widget.project != null
-                              ? 'Votre don servira à soutenir nos projets : orphelins, veuves, personnes âgées, aide alimentaire, etc.'
-                              : 'Votre don est libre : il sera utilisé là où le besoin est le plus urgent parmi nos actions.',
+                          'Choisissez la catégorie que vous souhaitez soutenir. Votre contribution aidera nos actions dans ce domaine.',
                           style: AppText.small,
                         ),
                       ),
