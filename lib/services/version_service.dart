@@ -44,10 +44,26 @@ class VersionService {
     final packageInfo = await PackageInfo.fromPlatform();
     final currentVersionCode = int.tryParse(packageInfo.buildNumber) ?? 0;
 
+    debugPrint('===== DIAGNOSTIC MISE À JOUR =====');
+    debugPrint('Package réel : ${packageInfo.packageName}');
+    debugPrint('Version name réelle : ${packageInfo.version}');
+    debugPrint('Build number réel : ${packageInfo.buildNumber}');
+    debugPrint('Build number converti : $currentVersionCode');
+
     final doc = await _versions.doc(packageInfo.packageName).get();
+
+    debugPrint('Document Firestore : app_versions/${packageInfo.packageName}');
+    debugPrint('Document existe : ${doc.exists}');
+
     if (!doc.exists) return null;
 
     final info = UpdateInfo.fromDoc(doc);
+
+    debugPrint('Firestore latestVersionCode : ${info.latestVersionCode}');
+    debugPrint('Firestore latestVersionName : ${info.latestVersionName}');
+    debugPrint('Firestore downloadUrl : ${info.downloadUrl}');
+    debugPrint('Comparaison : ${info.latestVersionCode} > $currentVersionCode');
+    debugPrint('=================================');
     if (info.latestVersionCode <= currentVersionCode) return null;
 
     final prefs = await SharedPreferences.getInstance();
