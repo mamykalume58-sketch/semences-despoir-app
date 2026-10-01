@@ -340,19 +340,152 @@ class _PaymentCheckoutPageState extends State<PaymentCheckoutPage> {
 
   @override
   Widget build(BuildContext context) {
+    const vert = Color(0xFF0B6B3A);
+    const or = Color(0xFFFFC107);
+
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F9F7),
       appBar: AppBar(
-        title: const Text('Paiement sécurisé'),
+        backgroundColor: vert,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        titleSpacing: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        title: const Text(
+          'Paiement sécurisé',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
-      body: Stack(
+      body: Column(
         children: [
-          WebViewWidget(controller: _controller),
-          if (_progress < 100)
-            LinearProgressIndicator(value: _progress / 100),
+          // En-tête Semences d'Espoir
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+            decoration: const BoxDecoration(
+              color: vert,
+              border: Border(
+                bottom: BorderSide(
+                  color: or,
+                  width: 3,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Image.asset(
+                    'assets/vpla_icon_v2.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Semences d’Espoir',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Votre générosité compte',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.lock_outline,
+                  color: or,
+                  size: 22,
+                ),
+              ],
+            ),
+          ),
+
+          // Checkout Nyole
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(18),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
+                children: [
+                  WebViewWidget(controller: _controller),
+                  if (_progress < 100)
+                    LinearProgressIndicator(
+                      value: _progress / 100,
+                      minHeight: 3,
+                      backgroundColor: Colors.transparent,
+                      valueColor: const AlwaysStoppedAnimation<Color>(or),
+                    ),
+                ],
+              ),
+            ),
+          ),
+
+          // Pied de page
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 10,
+            ),
+            color: Colors.white,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.verified_user_outlined,
+                  color: vert,
+                  size: 17,
+                ),
+                SizedBox(width: 7),
+                Text(
+                  'Paiement sécurisé • Semences d’Espoir',
+                  style: TextStyle(
+                    color: Color(0xFF0B6B3A),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
