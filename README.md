@@ -41,3 +41,4 @@ images) et publie l'APK en artefact (`semences-despoir-apk`, 90 jours).
 git init && git add . && git commit -m "Init app Flutter Vivre pour les Autres"
 # puis push sur le dépôt GitHub (branche main) → onglet Actions → Build APK
 ```
+# test run 60 — 1791006283
