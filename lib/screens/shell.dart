@@ -30,25 +30,13 @@ class _MainShellState extends State<MainShell> {
 
   Future<void> _checkUpdate() async {
     try {
-      final pkg = await PackageInfo.fromPlatform();
       final info = await VersionService().checkForUpdate();
       if (!mounted) return;
       if (info != null) {
         await showUpdateDialog(context, info: info);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          duration: const Duration(seconds: 10),
-          content: Text(
-            'DEBUG — package: ${pkg.packageName}, code installé: ${pkg.buildNumber} → aucune mise à jour détectée (null)',
-          ),
-        ));
       }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        duration: const Duration(seconds: 15),
-        content: Text('DEBUG — erreur vérification mise à jour : $e'),
-      ));
+    } catch (_) {
+      // Erreur de vérification : ne pas interrompre l'utilisation de l'application.
     }
   }
 
