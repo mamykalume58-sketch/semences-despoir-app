@@ -30,9 +30,14 @@ jobs:
           cat "$PLIST"
 
       - name: Firebase (GoogleService-Info.plist)
+        env:
+          GOOGLE_SERVICE_INFO_PLIST_B64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST }}
         run: |
-          echo "TODO : copier GoogleService-Info.plist une fois l'app iOS enregistrée dans Firebase."
-          # cp GoogleService-Info.plist ios/Runner/GoogleService-Info.plist
+          if [ -z "$GOOGLE_SERVICE_INFO_PLIST_B64" ]; then
+            echo "Secret IOS_GOOGLE_SERVICE_INFO_PLIST manquant ou vide." >&2
+            exit 1
+          fi
+          echo "$GOOGLE_SERVICE_INFO_PLIST_B64" | base64 -d > ios/Runner/GoogleService-Info.plist
 
       - run: flutter pub get
 
