@@ -363,68 +363,6 @@ class _PaymentCheckoutPageState extends State<PaymentCheckoutPage> {
       ),
       body: Column(
         children: [
-          // En-tête Semences d'Espoir
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
-            decoration: const BoxDecoration(
-              color: vert,
-              border: Border(
-                bottom: BorderSide(
-                  color: or,
-                  width: 3,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Image.asset(
-                    'assets/vpla_icon_v2.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Semences d’Espoir',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Votre générosité compte',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(
-                  Icons.lock_outline,
-                  color: or,
-                  size: 22,
-                ),
-              ],
-            ),
-          ),
-
           // Checkout Nyole
           Expanded(
             child: Container(
@@ -458,34 +396,6 @@ class _PaymentCheckoutPageState extends State<PaymentCheckoutPage> {
             ),
           ),
 
-          // Pied de page
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 10,
-            ),
-            color: Colors.white,
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.verified_user_outlined,
-                  color: vert,
-                  size: 17,
-                ),
-                SizedBox(width: 7),
-                Text(
-                  'Paiement sécurisé • Semences d’Espoir',
-                  style: TextStyle(
-                    color: Color(0xFF0B6B3A),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
