@@ -35,6 +35,16 @@ jobs:
           # cp GoogleService-Info.plist ios/Runner/GoogleService-Info.plist
 
       - run: flutter pub get
+
+      - name: Config icônes iOS (générée ici, jamais commitée)
+        run: |
+          cat > flutter_launcher_icons-ios.yaml << 'ICONS_EOF'
+          flutter_launcher_icons:
+            android: false
+            ios: true
+            image_path: "assets/vpla_icon_v2.png"
+          ICONS_EOF
+
       - run: dart run flutter_launcher_icons -f flutter_launcher_icons-ios.yaml
 
       - name: Build iOS (non signé pour l'instant)
