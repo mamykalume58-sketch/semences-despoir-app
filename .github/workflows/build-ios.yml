@@ -35,7 +35,7 @@ jobs:
           # cp GoogleService-Info.plist ios/Runner/GoogleService-Info.plist
 
       - run: flutter pub get
-      - run: dart run flutter_launcher_icons
+      - run: dart run flutter_launcher_icons -f flutter_launcher_icons-ios.yaml
 
       - name: Build iOS (non signé pour l'instant)
         run: flutter build ios --release --no-codesign
