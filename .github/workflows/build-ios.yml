@@ -1,0 +1,49 @@
+name: Build iOS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Le dépôt ne contient que lib/ + pubspec.yaml : on génère ios/
+      # dans un dossier temporaire, comme pour android/.
+      - name: Générer ios/
+        run: |
+          flutter create --platforms=ios --org com.semencesdespoir --project-name semences_despoir "$RUNNER_TEMP/scaffold"
+          cp -r "$RUNNER_TEMP/scaffold/ios" ./ios
+
+      - name: Permissions et nom de l'app (Info.plist)
+        run: |
+          PLIST=ios/Runner/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName VPLA" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :NSPhotoLibraryUsageDescription string 'VPLA a besoin d’accéder à vos photos pour choisir une image de profil.'" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'VPLA a besoin de l’appareil photo pour prendre une photo de profil.'" "$PLIST"
+          cat "$PLIST"
+
+      - name: Firebase (GoogleService-Info.plist)
+        run: |
+          echo "TODO : copier GoogleService-Info.plist une fois l'app iOS enregistrée dans Firebase."
+          # cp GoogleService-Info.plist ios/Runner/GoogleService-Info.plist
+
+      - run: flutter pub get
+      - run: dart run flutter_launcher_icons
+
+      - name: Build iOS (non signé pour l'instant)
+        run: flutter build ios --release --no-codesign
+
+      - name: TODO signature + archive .ipa
+        run: |
+          echo "TODO une fois le compte Apple Developer en place :"
+          echo " - certificat de distribution (.p12) + mot de passe en secrets"
+          echo " - profil de provisionnement (.mobileprovision) en secret"
+          echo " - Team ID Apple en secret"
+          echo " - xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner archive ..."
